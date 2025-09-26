@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Интерактивная школа — демо</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Feather icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* Лёгкие анимации и ховеры */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .school-door:hover {
+            transform: scale(1.04);
+            box-shadow: 0 10px 30px -8px rgba(249,115,22,0.45);
+        }
+        .wing-door:hover .door-label {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .classroom-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px -10px rgba(0,0,0,0.12);
+        }
+        .student-avatar { transition: transform .22s ease, box-shadow .22s ease; }
+        .student-avatar:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(249,115,22,0.18); }
+
+        /* Минимальные стили для плавного появления экранов */
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn .18s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
+<!-- ========== Header (общий) ========== -->
+<header id="globalHeader" class="bg-white shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <button id="homeBtn" title="Главная" class="p-2 rounded-full hover:bg-slate-100" onclick="showScreen('facade')">
+                <i data-feather="home" class="text-slate-600"></i>
+            </button>
+            <h1 class="text-lg font-semibold">Интерактивная школа — демо</h1>
+        </div>
+        <div class="text-sm text-slate-500">Прототип: фасад → вестибюль → крыло начальных классов</div>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+    <!-- ========== ФАСАД ========== -->
+    <section id="facade" class="screen active">
+        <div class="bg-gradient-to-br from-sky-50 to-slate-50 rounded-2xl p-6 shadow-lg relative overflow-hidden">
+            <!-- Roof decorative -->
+            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[64px] border-l-transparent border-r-[64px] border-r-transparent border-b-[64px] border-b-slate-200"></div>
+
+            <!-- Sign -->
+            <div class="text-center mb-6">
+                <div class="inline-block bg-orange-500 text-white px-5 py-2 rounded-xl shadow">ШКОЛА №— (Демо)</div>
+            </div>
+
+            <!-- windows row -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="rounded-lg h-16 bg-white shadow-inner border border-slate-100"></div>
+                <div class="rounded-lg h-16 bg-white shadow-inner border border-slate-100"></div>
+                <div class="rounded-lg h-16 bg-white shadow-inner border border-slate-100"></div>
+            </div>
+
+            <!-- Door -->
+            <div class="flex justify-center">
+                <div id="mainDoor" class="school-door relative transition-transform duration-200 cursor-pointer bg-orange-500 rounded-b-xl w-40 h-44 flex items-end justify-center shadow-lg" onclick="enterSchool()">
+                    <div class="absolute top-5 left-6 bg-orange-600 w-4 h-6 rounded-full"></div>
+                    <div class="bg-white w-full h-32 rounded-b-xl flex items-center justify-center">
+                        <i data-feather="arrow-down" class="w-8 h-8 text-orange-500 animate-[float_2s_ease-in-out_infinite]"></i>
+                    </div>
+                    <div class="absolute -bottom-6 text-center w-full text-orange-600 font-medium">Нажать, чтобы войти</div>
+                </div>
+            </div>
+
+            <!-- courtyard -->
+            <div class="mt-6 bg-slate-100 h-12 rounded-b-xl"></div>
+        </div>
+
+        <div class="mt-8 text-center text-slate-600">
+            <p class="mb-3">Интерактивный прототип: перемещайтесь по зданию, кликая по дверям и стрелкам.</p>
+            <div class="flex justify-center gap-4">
+                <div class="p-3 bg-white rounded-lg shadow-sm">
+                    <i data-feather="users" class="text-orange-500 mx-auto"></i>
+                    <p class="text-xs mt-1">Учителя</p>
+                </div>
+                <div class="p-3 bg-white rounded-lg shadow-sm">
+                    <i data-feather="book" class="text-orange-500 mx-auto"></i>
+                    <p class="text-xs mt-1">Классы</p>
+                </div>
+                <div class="p-3 bg-white rounded-lg shadow-sm">
+                    <i data-feather="smile" class="text-orange-500 mx-auto"></i>
+                    <p class="text-xs mt-1">Ученики</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== ВЕСТИБЮЛЬ ========== -->
+    <section id="lobby" class="screen">
+        <div class="bg-white rounded-xl shadow-lg p-6 relative">
+            <button onclick="showScreen('facade')" class="absolute top-4 left-4 bg-slate-50 p-2 rounded-full hover:bg-slate-100">
+                <i data-feather="arrow-left" class="text-slate-600"></i>
+            </button>
+
+            <h2 class="text-2xl text-center font-bold mb-4">Вестибюль</h2>
+            <p class="text-center text-sm text-slate-500 mb-6">Выберите крыло школы: левое — начальная школа; правое — старшие классы; второй этаж — библиотека и администрация.</p>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Left wing -->
+                <div class="wing-door relative bg-slate-50 rounded-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-md" onclick="showScreen('primaryWing')">
+                    <div class="bg-orange-500 w-16 h-24 rounded flex items-center justify-center mb-3">
+                        <i data-feather="book-open" class="text-white w-6 h-6"></i>
+                    </div>
+                    <div class="text-lg font-medium">Левое крыло</div>
+                    <div class="text-sm text-slate-500 mt-1">Начальная школа</div>
+                    <div class="door-label absolute -left-3 bg-orange-500 text-white px-3 py-1 rounded-full opacity-0 transition-all duration-300 -translate-y-2">1 этаж — начальная</div>
+                </div>
+
+                <!-- Stairs / second floor -->
+                <div class="bg-slate-50 rounded-lg p-6 flex flex-col items-center justify-center">
+                    <div class="text-lg font-medium mb-2">Навигация</div>
+                    <button onclick="alert('Переход на 2-й этаж (демо): здесь можно разместить библиотеку/админку')" class="bg-orange-500 text-white px-4 py-2 rounded-full shadow-sm">
+                        На 2-й этаж
+                    </button>
+                    <div class="text-sm text-slate-400 mt-3">(в демо — заглушка)</div>
+                </div>
+
+                <!-- Right wing -->
+                <div class="wing-door relative bg-slate-50 rounded-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-md" onclick="alert('Правое крыло пока не реализовано в демо')">
+                    <div class="bg-orange-500 w-16 h-24 rounded flex items-center justify-center mb-3">
+                        <i data-feather="flask" class="text-white w-6 h-6"></i>
+                    </div>
+                    <div class="text-lg font-medium">Правое крыло</div>
+                    <div class="text-sm text-slate-500 mt-1">Средние и старшие классы</div>
+                    <div class="door-label absolute -right-3 bg-orange-500 text-white px-3 py-1 rounded-full opacity-0 transition-all duration-300 -translate-y-2">2 и 3 этажи</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== ЛЕВОЕ КРЫЛО (НАЧАЛЬНАЯ) ========== -->
+    <section id="primaryWing" class="screen">
+        <div class="bg-white rounded-xl shadow-lg p-6 relative">
+            <button onclick="showScreen('lobby')" class="absolute top-4 left-4 bg-slate-50 p-2 rounded-full hover:bg-slate-100">
+                <i data-feather="arrow-left" class="text-slate-600"></i>
+            </button>
+            <h2 class="text-2xl font-bold text-center mb-4">Крыло начальной школы</h2>
+
+            <!-- Карточки классов -->
+            <div class="bg-slate-50 rounded-xl p-4 mb-6">
+                <h3 class="font-semibold mb-3 flex items-center gap-2"><i data-feather="map" class="text-orange-500"></i> Карта кабинетов</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Карточки будут генерироваться JS -->
+                    <div id="classesContainer" class="contents"></div>
+                </div>
+            </div>
+
+            <!-- Дашборд ученика -->
+            <div id="studentPanel" class="bg-white rounded-xl p-6 shadow-sm">
+                <!-- Здесь JS подставит содержимое -->
+                <div id="studentPlaceholder" class="text-center text-slate-500 py-12">
+                    Выберите класс, затем ученика, чтобы открыть дашборд.
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ========== Сценарий и демонстрационные данные ========== -->
+<script>
+    // Инициализация и замена иконок
+    feather.replace();
+
+    // Пример данных — классы и ученики
+    const SCHOOL_DATA = {
+        classes: [
+            {
+                id: '1A',
+                name: '1А',
+                teacher: 'Ирина Петровна',
+                students: [
+                    { id: 's1', name: 'Алексей Иванов', age: 7, bus: '№12', allergies: 'Нет', behavior: 4.6, attendance: '98%', stars: 5, grades: {Чтение: 'A', Математика: 'B', Окружение: 'A-'} },
+                    { id: 's2', name: 'Мария Соколова', age: 7, bus: '№12', allergies: 'Орехи', behavior: 4.9, attendance: '100%', stars: 6, grades: {Чтение: 'A+', Математика: 'A', Окружение: 'A'} }
+                ]
+            },
+            {
+                id: '1B',
+                name: '1Б',
+                teacher: 'Сергей Викторович',
+                students: [
+                    { id: 's3', name: 'Дмитрий Котов', age: 7, bus: 'Пешком', allergies: 'Нет', behavior: 4.2, attendance: '95%', stars: 3, grades: {Чтение: 'B+', Математика: 'B', Окружение: 'B+'} },
+                    { id: 's4', name: 'Ольга Миронова', age: 6, bus: '№7', allergies: 'Пыльца', behavior: 4.8, attendance: '99%', stars: 5, grades: {Чтение: 'A', Математика: 'A-', Окружение: 'A'} }
+                ]
+            },
+            {
+                id: '2A',
+                name: '2А',
+                teacher: 'Анна Михайловна',
+                students: [
+                    { id: 's5', name: 'Игорь Беляев', age: 8, bus: '№42', allergies: 'Нет', behavior: 4.5, attendance: '97%', stars: 4, grades: {Чтение: 'A-', Математика: 'B+', Окружение: 'A-'} }
+                ]
+            },
+            {
+                id: '2B',
+                name: '2Б',
+                teacher: 'Елена Васильева',
+                students: [
+                    { id: 's6', name: 'Софья Лебедева', age: 8, bus: '№42', allergies: 'Нет', behavior: 5.0, attendance: '100%', stars: 7, grades: {Чтение: 'A+', Математика: 'A', Окружение: 'A+'} }
+                ]
+            }
+        ]
+    };
+
+    // Утилиты показа экранов
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const el = document.getElementById(id);
+        if (el) el.classList.add('active');
+        // небольшая фокус-реакция: скролл наверх
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Вход в здание — переключаем на вестибюль
+    function enterSchool() {
+        showScreen('lobby');
+        // звук двери (не критично, можно отключить)
+        try { new Audio('https://assets.mixkit.co/sfx/preview/mixkit-door-with-metal-knob-1803.mp3').play(); } catch(e){}
+    }
+
+    // Инициализация карточек классов
+    function renderClassCards() {
+        const container = document.getElementById('classesContainer');
+        container.innerHTML = '';
+        SCHOOL_DATA.classes.forEach((cls, idx) => {
+            const card = document.createElement('div');
+            card.className = 'classroom-card bg-white rounded-lg p-4 text-center cursor-pointer transition duration-200';
+            card.innerHTML = `
+                <div class="bg-orange-500 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <i data-feather="book" class="w-5 h-5"></i>
+                </div>
+                <div class="font-medium text-lg">${cls.name}</div>
+                <div class="text-sm text-slate-500">${cls.teacher}</div>
+            `;
+            card.addEventListener('click', () => openClass(cls.id));
+            container.appendChild(card);
+        });
+        feather.replace(); // чтобы иконки внутри новых элементов отрисовались
+    }
+
+    // Открыть класс: показать список учеников (и выбрать первого по умолчанию)
+    function openClass(classId) {
+        const cls = SCHOOL_DATA.classes.find(c => c.id === classId);
+        if (!cls) return;
+        const panel = document.getElementById('studentPanel');
+        panel.innerHTML = ''; // очистить
+
+        // Шапка
+        const header = document.createElement('div');
+        header.className = 'flex items-center justify-between mb-4';
+        header.innerHTML = `
+            <div>
+                <div class="text-lg font-semibold">Класс ${cls.name}</div>
+                <div class="text-sm text-slate-500">Классный руководитель: ${cls.teacher}</div>
+            </div>
+            <div>
+                <button class="bg-slate-50 px-3 py-1 rounded hover:bg-slate-100" onclick="renderClassCards()">← К выбору классов</button>
+            </div>
+        `;
+        panel.appendChild(header);
+
+        // Секция: список учеников слева, дашборд справа
+        const layout = document.createElement('div');
+        layout.className = 'flex flex-col md:flex-row gap-6';
+
+        // Список учеников (колонка)
+        const listCol = document.createElement('div');
+        listCol.className = 'w-full md:w-1/3 bg-slate-50 rounded-lg p-3';
+        const ul = document.createElement('div');
+        ul.className = 'space-y-3';
+        cls.students.forEach((st, i) => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center gap-3 p-2 rounded hover:bg-white cursor-pointer';
+            item.innerHTML = `
+                <div class="student-avatar bg-orange-500 text-white rounded-full w-12 h-12 flex items-center justify-center">
+                    <i data-feather="user" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="font-medium">${st.name}</div>
+                    <div class="text-xs text-slate-500">${st.age} лет · ${st.bus}</div>
+                </div>
+            `;
+            item.addEventListener('click', () => renderStudentDashboard(cls.id, st.id));
+            ul.appendChild(item);
+        });
+        listCol.appendChild(ul);
+
+        // Дашборд (правая часть)
+        const dashCol = document.createElement('div');
+        dashCol.className = 'w-full md:w-2/3 bg-white rounded-lg p-4 shadow-sm';
+        dashCol.id = 'dashCol';
+        dashCol.innerHTML = `<div class="text-slate-500 text-center py-12">Выберите ученика слева, чтобы увидеть дашборд.</div>`;
+
+        layout.appendChild(listCol);
+        layout.appendChild(dashCol);
+        panel.appendChild(layout);
+
+        // Рендерим первого ученика по умолчанию (если есть)
+        if (cls.students.length > 0) {
+            renderStudentDashboard(cls.id, cls.students[0].id);
+        }
+    }
+
+    // Рендер дашборда ученика
+    function renderStudentDashboard(classId, studentId) {
+        const cls = SCHOOL_DATA.classes.find(c => c.id === classId);
+        if (!cls) return;
+        const student = cls.students.find(s => s.id === studentId);
+        if (!student) return;
+
+        const dash = document.getElementById('dashCol');
+        dash.innerHTML = ''; // очистка
+
+        // Верх — профиль
+        const profile = document.createElement('div');
+        profile.className = 'flex flex-col md:flex-row gap-4 items-start mb-4';
+        profile.innerHTML = `
+            <div class="flex items-center gap-4 w-full md:w-1/3">
+                <div class="student-avatar bg-orange-500 text-white rounded-full w-20 h-20 flex items-center justify-center text-lg">${initials(student.name)}</div>
+                <div>
+                    <div class="text-xl font-bold">${student.name}</div>
+                    <div class="text-sm text-slate-500">${cls.name} · классный руководитель: ${cls.teacher}</div>
+                    <div class="mt-2 flex gap-2">
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Поведение ${student.behavior}</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Посещаемость ${student.attendance}</span>
+                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Звёзды ${student.stars}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="w-full md:w-2/3 flex flex-col gap-3">
+                <div class="bg-slate-50 p-3 rounded">
+                    <div class="text-sm text-slate-500">Автобус / маршрут</div>
+                    <div class="font-medium">${student.bus}</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded">
+                    <div class="text-sm text-slate-500">Аллергии</div>
+                    <div class="font-medium text-amber-700">${student.allergies || 'Нет'}</div>
+                </div>
+            </div>
+        `;
+        dash.appendChild(profile);
+
+        // Прогресс / таблица знаний
+        const progressWrap = document.createElement('div');
+        progressWrap.className = 'mt-4';
+        progressWrap.innerHTML = `
+            <h4 class="font-semibold mb-2 flex items-center gap-2"><i data-feather="clipboard" class="text-orange-500"></i> Отчёт успеваемости</h4>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="py-2 px-4 text-left">Предмет</th>
+                            <th class="py-2 px-4 text-center">Оценка</th>
+                            <th class="py-2 px-4 text-left">Комментарий</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gradesBody"></tbody>
+                </table>
+            </div>
+        `;
+        dash.appendChild(progressWrap);
+
+        // Родительское сообщение / уведомления
+        const msgWrap = document.createElement('div');
+        msgWrap.className = 'mt-4 bg-amber-50 border-l-4 border-amber-400 p-4 rounded';
+        msgWrap.innerHTML = `
+            <div class="flex items-start gap-3">
+                <div class="text-amber-500"><i data-feather="mail"></i></div>
+                <div>
+                    <div class="font-medium text-amber-800">Сообщение для родителей</div>
+                    <div class="text-sm text-amber-700 mt-1">Напоминание: разрешение на участие в экскурсии — до пятницы.</div>
+                    <div class="text-xs text-amber-600 mt-2">От: ${cls.teacher} · 2 дня назад</div>
+                </div>
+            </div>
+        `;
+        dash.appendChild(msgWrap);
+
+        // Заполнение оценок в таблицу
+        const gradesBody = dash.querySelector('#gradesBody');
+        gradesBody.innerHTML = '';
+        const grades = student.grades || {};
+        Object.keys(grades).forEach(subject => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-slate-100';
+            tr.innerHTML = `
+                <td class="py-3 px-4">${subject}</td>
+                <td class="py-3 px-4 text-center font-bold">${grades[subject]}</td>
+                <td class="py-3 px-4 text-sm text-slate-500">Комментарий учителя</td>
+            `;
+            gradesBody.appendChild(tr);
+        });
+
+        feather.replace();
+    }
+
+    // Вспомогательная: инициализация фасада/классов
+    function initDemo() {
+        renderClassCards();
+    }
+
+    // Вспомогательная: получить инициалы
+    function initials(name) {
+        return name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+    }
+
+    // Запуск при загрузке
+    window.addEventListener('load', () => {
+        initDemo();
+    });
+
+    // Быстрая навигация (для хедера)
+    document.getElementById('homeBtn').addEventListener('click', () => showScreen('facade'));
+</script>
+
+</body>
+</html>
