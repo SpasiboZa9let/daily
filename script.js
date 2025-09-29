@@ -1,5 +1,8 @@
 let notes = JSON.parse(localStorage.getItem("dailyNotes")) || []
 let editIndex = null
+let query = ''
+let lastDeleted = null
+let undoTimer = null
 
 const app = document.getElementById('app')
 const createBtn = document.getElementById('createNoteBtn')
@@ -22,11 +25,32 @@ const viewText = document.getElementById('viewText')
 const viewFile = document.getElementById('viewFile')
 const closeViewBtn = document.getElementById('closeViewBtn')
 
-// рендер карточек
+// поиск
+const searchInput = document.getElementById('searchInput')
+
+// экспорт/импорт
+const exportBtn = document.getElementById('exportBtn')
+const importBtn = document.getElementById('importBtn')
+const importInput = document.getElementById('importInput')
+
+// тост undo
+const toast = document.getElementById('toast')
+const undoLink = document.getElementById('undoLink')
+
+// плотность
+const densityBtn = document.getElementById('densityBtn')
+
+// ======================= РЕНДЕР ==========================
 function renderNotes() {
+  const filtered = notes.filter(n =>
+    (n.title || '').toLowerCase().includes(query) ||
+    (n.topic || '').toLowerCase().includes(query) ||
+    (n.text || '').toLowerCase().includes(query)
+  )
+
   app.innerHTML = `
     <div class="card-grid">
-      ${notes.map((note, i) => `
+      ${filtered.map((note, i) => `
         <div class="card" data-index="${i}">
           <div class="card__actions">
             <button onclick="editNote(${i})">✏️</button>
@@ -45,14 +69,14 @@ function renderNotes() {
   // клики на карточки (открытие просмотра)
   document.querySelectorAll(".card").forEach(card => {
     card.addEventListener("click", (e) => {
-      if (e.target.tagName === "BUTTON") return // не открывать, если клик по кнопке
+      if (e.target.tagName === "BUTTON") return // игнор кнопок
       const idx = card.dataset.index
       openView(idx)
     })
   })
 }
 
-// открыть модалку создания
+// ======================= СОЗДАНИЕ ==========================
 createBtn.addEventListener("click", () => {
   editIndex = null
   modalTitle.textContent = "Новая запись"
@@ -97,7 +121,7 @@ function saveNote(title, topic, text, file) {
   renderNotes()
 }
 
-// редактирование
+// ======================= РЕДАКТИРОВАНИЕ ==========================
 window.editNote = function(index) {
   editIndex = index
   const note = notes[index]
@@ -108,21 +132,36 @@ window.editNote = function(index) {
   modal.classList.remove("hidden")
 }
 
-// удаление
+// ======================= УДАЛЕНИЕ + UNDO ==========================
 window.deleteNote = function(index) {
-  if (confirm("Удалить запись?")) {
-    notes.splice(index, 1)
-    localStorage.setItem("dailyNotes", JSON.stringify(notes))
-    renderNotes()
-  }
+  const removed = notes.splice(index, 1)[0]
+  lastDeleted = { removed, index }
+  localStorage.setItem("dailyNotes", JSON.stringify(notes))
+  renderNotes()
+  showToast()
 }
 
-// просмотр
+function showToast() {
+  toast.classList.remove('hidden')
+  clearTimeout(undoTimer)
+  undoTimer = setTimeout(() => toast.classList.add('hidden'), 5000)
+}
+
+undoLink?.addEventListener('click', () => {
+  if (!lastDeleted) return
+  notes.splice(lastDeleted.index, 0, lastDeleted.removed)
+  localStorage.setItem("dailyNotes", JSON.stringify(notes))
+  lastDeleted = null
+  toast.classList.add('hidden')
+  renderNotes()
+})
+
+// ======================= ПРОСМОТР ==========================
 function openView(index) {
   const note = notes[index]
   viewTitle.textContent = note.title
   viewTopic.textContent = note.topic ? "Тема: " + note.topic : ""
-  viewText.textContent = note.text
+  viewText.innerHTML = window.marked ? marked.parse(note.text || '') : (note.text || '')
   viewFile.innerHTML = note.file ? `<a href="${note.file}" target="_blank">📂 Открыть файл</a>` : ""
   viewModal.classList.remove("hidden")
 }
@@ -130,5 +169,74 @@ closeViewBtn.addEventListener("click", () => {
   viewModal.classList.add("hidden")
 })
 
-// первый запуск
+// ======================= ПОИСК ==========================
+searchInput?.addEventListener('input', () => {
+  query = searchInput.value.toLowerCase()
+  renderNotes()
+})
+
+// ======================= ЭКСПОРТ / ИМПОРТ ==========================
+exportBtn?.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(notes)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'daily-notes.json'
+  a.click()
+  URL.revokeObjectURL(url)
+})
+
+importBtn?.addEventListener('click', () => importInput.click())
+importInput?.addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return
+  const r = new FileReader()
+  r.onload = () => {
+    try {
+      notes = JSON.parse(r.result)
+      localStorage.setItem("dailyNotes", JSON.stringify(notes))
+      renderNotes()
+    } catch {
+      alert('Некорректный JSON')
+    }
+  }
+  r.readAsText(file)
+})
+
+// ======================= ПЛОТНОСТЬ ==========================
+densityBtn?.addEventListener('click', () => {
+  document.body.classList.toggle('compact')
+  densityBtn.textContent = document.body.classList.contains('compact') ? 'Удобочитаемо' : 'Компактно'
+})
+
+// ======================= КЛАВИАТУРА ==========================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'n' && modal.classList.contains('hidden') && viewModal.classList.contains('hidden')) {
+    e.preventDefault(); createBtn.click()
+  }
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault(); searchInput?.focus()
+  }
+  if (e.key === 'Escape') {
+    modal.classList.add("hidden")
+    viewModal.classList.add("hidden")
+    toast.classList.add("hidden")
+  }
+})
+
+// ======================= DRAG & DROP ФАЙЛОВ ==========================
+window.addEventListener('dragover', e => { e.preventDefault() })
+window.addEventListener('drop', e => {
+  e.preventDefault()
+  const f = e.dataTransfer.files?.[0]
+  if (!f) return
+  // открываем форму и подсовываем файл
+  editIndex = null
+  modalTitle.textContent = "Новая запись"
+  modal.classList.remove("hidden")
+  form.reset()
+  const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files
+  titleInput.value ||= f.name
+})
+
+// ======================= СТАРТ ==========================
 renderNotes()
