@@ -1,34 +1,72 @@
-const cardData = [
-  { color: '#060010', title: 'Обо мне', description: 'Краткая инфа', label: 'Intro' },
-  { color: '#060010', title: 'Проекты', description: 'Мои работы', label: 'Work' },
-  { color: '#060010', title: 'Контакты', description: 'GitHub, Telegram', label: 'Links' },
-  { color: '#060010', title: 'Заметки', description: 'Ежедневные мысли', label: 'Daily' },
-]
+let notes = JSON.parse(localStorage.getItem("dailyNotes")) || []
 
 const app = document.getElementById('app')
+const createBtn = document.getElementById('createNoteBtn')
 
-app.innerHTML = `
-  <div class="card-grid bento-section">
-    ${cardData.map(card => `
-      <div class="card" style="background:${card.color}">
-        <div class="card__header">
-          <div class="card__label">${card.label}</div>
-        </div>
-        <div class="card__content">
-          <h2 class="card__title">${card.title}</h2>
-          <p class="card__description">${card.description}</p>
-        </div>
-      </div>
-    `).join('')}
-  </div>
-`
+// элементы модалки
+const modal = document.getElementById('modal')
+const form = document.getElementById('noteForm')
+const cancelBtn = document.getElementById('cancelBtn')
+const titleInput = document.getElementById('noteTitle')
+const topicInput = document.getElementById('noteTopic')
+const textInput = document.getElementById('noteText')
+const fileInput = document.getElementById('noteFile')
 
-// простой эффект наведения
-document.querySelectorAll('.card').forEach(card => {
-  card.addEventListener('mouseenter', () => {
-    gsap.to(card, { scale: 1.05, duration: 0.3 })
-  })
-  card.addEventListener('mouseleave', () => {
-    gsap.to(card, { scale: 1, duration: 0.3 })
-  })
+// рендер карточек
+function renderNotes() {
+  app.innerHTML = `
+    <div class="card-grid">
+      ${notes.map((note) => `
+        <div class="card">
+          <div class="card__header">${note.topic || "Без темы"}</div>
+          <div class="card__content">
+            <h2 class="card__title">${note.title}</h2>
+            <p class="card__description">${note.text}</p>
+            ${note.file ? `<a href="${note.file}" target="_blank">📂 Открыть файл</a>` : ""}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `
+}
+
+// открыть модалку
+createBtn.addEventListener("click", () => {
+  modal.classList.remove("hidden")
+  form.reset()
 })
+
+// закрыть модалку
+cancelBtn.addEventListener("click", () => {
+  modal.classList.add("hidden")
+})
+
+// сохранить запись
+form.addEventListener("submit", (e) => {
+  e.preventDefault()
+  const title = titleInput.value.trim()
+  const topic = topicInput.value.trim()
+  const text = textInput.value.trim()
+
+  const file = fileInput.files[0]
+
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = () => {
+      saveNote(title, topic, text, reader.result)
+    }
+    reader.readAsDataURL(file)
+  } else {
+    saveNote(title, topic, text, null)
+  }
+  modal.classList.add("hidden")
+})
+
+function saveNote(title, topic, text, file) {
+  notes.push({ title, topic, text, file })
+  localStorage.setItem("dailyNotes", JSON.stringify(notes))
+  renderNotes()
+}
+
+// первый запуск
+renderNotes()
