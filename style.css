@@ -2,6 +2,7 @@
   --white: #f5f5f5;
   --text-muted: #aaa;
   --purple: #8a5cff;
+  --purple-dark: #2b004d;
   --border-color: #3b2a50;
   --background-dark: #0a0015;
 }
@@ -17,7 +18,21 @@ body {
 
 h1 {
   font-size: 2rem;
-  margin-top: 1rem;
+  margin: 1rem 0;
+}
+
+/* Панель и поиск */
+#menu button,
+#toolbar input {
+  margin: 4px;
+}
+#searchInput {
+  width: 280px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: #120020;
+  color: var(--white);
 }
 
 /* Сетка карточек */
@@ -74,18 +89,6 @@ h1 {
   text-align: left;
 }
 
-.card a {
-  margin-top: 10px;
-  display: inline-block;
-  color: var(--purple);
-  text-decoration: none;
-  font-size: 14px;
-}
-.card a:hover {
-  text-decoration: underline;
-}
-
-/* Кнопки управления */
 .card__actions {
   position: absolute;
   top: 8px;
@@ -94,7 +97,7 @@ h1 {
   gap: 6px;
 }
 .card__actions button {
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   border: none;
   color: var(--white);
   font-size: 14px;
@@ -112,7 +115,7 @@ button {
   border: none;
   color: white;
   font-weight: 600;
-  padding: 12px 20px;
+  padding: 10px 18px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 15px;
@@ -123,17 +126,22 @@ button:hover {
   box-shadow: 0 0 15px rgba(138, 92, 255, 0.6);
 }
 
-/* Модальные окна */
+/* Модалки */
 .modal {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 100;
 }
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
 
 .modal-content {
   background: #1a002e;
@@ -159,7 +167,7 @@ button:hover {
   font-size: 14px;
 }
 
-.modal-content input, 
+.modal-content input,
 .modal-content textarea {
   width: 100%;
   margin-top: 4px;
@@ -176,7 +184,64 @@ button:hover {
   margin-top: 15px;
 }
 
+/* Markdown внутри просмотра */
+.modal-content p {
+  margin: 0.4em 0;
+}
+.modal-content h1,
+.modal-content h2,
+.modal-content h3 {
+  margin: 0.6em 0 0.3em;
+}
+.modal-content code,
+.modal-content pre {
+  background: #0f001a;
+  border: 1px solid #34214a;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.modal-content pre {
+  overflow: auto;
+}
+
+/* Тост (undo) */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a002e;
+  border: 1px solid #3b2a50;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(138, 92, 255, 0.4);
+}
+#toast a {
+  color: var(--purple);
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+/* Компактный режим */
+body.compact .card {
+  padding: 0.75em;
+  min-height: 150px;
+}
+body.compact .card__title {
+  font-size: 16px;
+}
+body.compact .card__description {
+  font-size: 12px;
+}
+
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
