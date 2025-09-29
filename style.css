@@ -13,22 +13,25 @@ body {
   padding: 0;
 }
 
+/* Сетка карточек */
 .card-grid {
   display: grid;
-  gap: 0.5em;
-  padding: 0.75em;
-  max-width: 54em;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1em;
+  padding: 1em;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
+/* Карточка */
 .card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  aspect-ratio: 4/3;
-  min-height: 200px;
-  padding: 1.25em;
-  border-radius: 20px;
+  width: 100%;
+  min-height: 180px;
+  padding: 1em;
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   background: var(--background-dark);
   color: var(--white);
@@ -87,7 +90,6 @@ button:hover {
   z-index: 100;
 }
 .hidden { display: none; }
-.modal { position: fixed; ... }
 
 .modal-content {
   background: #111;
