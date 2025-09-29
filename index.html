@@ -7,20 +7,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body>
-  <h1 style="text-align:center; color:#fff;">Daily</h1>
+  <h1 style="text-align:center;">Daily</h1>
   
   <!-- Кнопка меню -->
   <div id="menu" style="text-align:center; margin:20px;">
     <button id="createNoteBtn">Создать запись</button>
   </div>
   
-  <!-- Сюда рендерятся карточки -->
+  <!-- Сетка карточек -->
   <div id="app"></div>
 
-  <!-- Модалка для новой записи -->
+  <!-- Модалка: форма -->
   <div id="modal" class="modal hidden">
     <div class="modal-content">
-      <h2>Новая запись</h2>
+      <h2 id="modalTitle">Новая запись</h2>
       <form id="noteForm">
         <label>Название</label>
         <input type="text" id="noteTitle" required>
@@ -39,6 +39,19 @@
           <button type="button" id="cancelBtn">Отмена</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Модалка: просмотр -->
+  <div id="viewModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="viewTitle"></h2>
+      <p id="viewTopic"></p>
+      <p id="viewText"></p>
+      <div id="viewFile"></div>
+      <div class="modal-actions">
+        <button type="button" id="closeViewBtn">Закрыть</button>
+      </div>
     </div>
   </div>
 
