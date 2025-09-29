@@ -87,6 +87,7 @@ button:hover {
   z-index: 100;
 }
 .hidden { display: none; }
+.modal { position: fixed; ... }
 
 .modal-content {
   background: #111;
