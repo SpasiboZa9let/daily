@@ -8,14 +8,15 @@
   />
   <title>Daily — Ежедневник</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Библиотеки из CDN (по желанию gsap для анимаций, marked для Markdown) -->
+  <!-- Библиотеки -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js" defer></script>
 </head>
 <body>
   <h1>Daily</h1>
 
-  <!-- Верхняя панель управления -->
+  <!-- Верхняя панель -->
   <div id="menu" style="margin: 10px 0;">
     <button id="createNoteBtn" title="N">Создать запись</button>
     <button id="exportBtn" title="Экспорт JSON">Экспорт</button>
@@ -36,12 +37,12 @@
   <!-- Сетка карточек -->
   <div id="app"></div>
 
-  <!-- Тост для Undo удаления -->
+  <!-- Тост для Undo -->
   <div id="toast" class="hidden" aria-live="polite">
     Удалено. <a id="undoLink">Отменить</a>
   </div>
 
-  <!-- Модалка: форма создания/редактирования -->
+  <!-- Модалка: форма -->
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
       <h2 id="modalTitle">Новая запись</h2>
@@ -53,7 +54,7 @@
         <input type="text" id="noteTopic" />
 
         <label for="noteText">Текст (поддерживается Markdown)</label>
-        <textarea id="noteText" rows="8" required placeholder="## Заголовок&#10;- пункт 1&#10;- пункт 2"></textarea>
+        <textarea id="noteText" rows="8" required></textarea>
 
         <label for="noteFile">Файл (необязательно)</label>
         <input type="file" id="noteFile" />
@@ -66,12 +67,11 @@
     </div>
   </div>
 
-  <!-- Модалка: просмотр карточки -->
+  <!-- Модалка: просмотр -->
   <div id="viewModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
     <div class="modal-content">
       <h2 id="viewTitle"></h2>
       <p id="viewTopic"></p>
-      <!-- Здесь рендерится Markdown -->
       <div id="viewText"></div>
       <div id="viewFile" style="margin-top:10px;"></div>
       <div class="modal-actions">
