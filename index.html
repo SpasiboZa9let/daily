@@ -2,14 +2,42 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Daily</title>
+  <title>Daily — Ежедневник</title>
   <link rel="stylesheet" href="style.css">
-  <!-- GSAP через CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body>
   <h1 style="text-align:center; color:#fff;">Daily</h1>
+  <div id="menu" style="text-align:center; margin:20px;">
+    <button id="createNoteBtn">Создать запись</button>
+  </div>
   <div id="app"></div>
+
+  <!-- Модальное окно -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Новая запись</h2>
+      <form id="noteForm">
+        <label>Название</label>
+        <input type="text" id="noteTitle" required>
+        
+        <label>Тема</label>
+        <input type="text" id="noteTopic">
+
+        <label>Текст</label>
+        <textarea id="noteText" rows="4" required></textarea>
+
+        <label>Файл (необязательно)</label>
+        <input type="file" id="noteFile">
+
+        <div class="modal-actions">
+          <button type="submit">Сохранить</button>
+          <button type="button" id="cancelBtn">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script type="module" src="script.js"></script>
 </body>
 </html>
