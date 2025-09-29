@@ -1,38 +1,62 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1"
+  />
   <title>Daily — Ежедневник</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Библиотеки из CDN (по желанию gsap для анимаций, marked для Markdown) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
 </head>
 <body>
-  <h1 style="text-align:center;">Daily</h1>
-  
-  <!-- Кнопка меню -->
-  <div id="menu" style="text-align:center; margin:20px;">
-    <button id="createNoteBtn">Создать запись</button>
+  <h1>Daily</h1>
+
+  <!-- Верхняя панель управления -->
+  <div id="menu" style="margin: 10px 0;">
+    <button id="createNoteBtn" title="N">Создать запись</button>
+    <button id="exportBtn" title="Экспорт JSON">Экспорт</button>
+    <button id="importBtn" title="Импорт JSON">Импорт</button>
+    <button id="densityBtn" title="Переключить плотность">Компактно</button>
   </div>
-  
+
+  <!-- Поиск -->
+  <div id="toolbar" style="margin: 6px 0 14px;">
+    <input
+      id="searchInput"
+      placeholder="Поиск по заголовку / теме / тексту (нажми /)"
+      aria-label="Поиск"
+    />
+    <input id="importInput" type="file" accept="application/json" style="display:none;" />
+  </div>
+
   <!-- Сетка карточек -->
   <div id="app"></div>
 
-  <!-- Модалка: форма -->
-  <div id="modal" class="modal hidden">
+  <!-- Тост для Undo удаления -->
+  <div id="toast" class="hidden" aria-live="polite">
+    Удалено. <a id="undoLink">Отменить</a>
+  </div>
+
+  <!-- Модалка: форма создания/редактирования -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
       <h2 id="modalTitle">Новая запись</h2>
       <form id="noteForm">
-        <label>Название</label>
-        <input type="text" id="noteTitle" required>
-        
-        <label>Тема</label>
-        <input type="text" id="noteTopic">
+        <label for="noteTitle">Название</label>
+        <input type="text" id="noteTitle" required />
 
-        <label>Текст</label>
-        <textarea id="noteText" rows="4" required></textarea>
+        <label for="noteTopic">Тема</label>
+        <input type="text" id="noteTopic" />
 
-        <label>Файл (необязательно)</label>
-        <input type="file" id="noteFile">
+        <label for="noteText">Текст (поддерживается Markdown)</label>
+        <textarea id="noteText" rows="8" required placeholder="## Заголовок&#10;- пункт 1&#10;- пункт 2"></textarea>
+
+        <label for="noteFile">Файл (необязательно)</label>
+        <input type="file" id="noteFile" />
 
         <div class="modal-actions">
           <button type="submit">Сохранить</button>
@@ -42,13 +66,14 @@
     </div>
   </div>
 
-  <!-- Модалка: просмотр -->
-  <div id="viewModal" class="modal hidden">
+  <!-- Модалка: просмотр карточки -->
+  <div id="viewModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
     <div class="modal-content">
       <h2 id="viewTitle"></h2>
       <p id="viewTopic"></p>
-      <p id="viewText"></p>
-      <div id="viewFile"></div>
+      <!-- Здесь рендерится Markdown -->
+      <div id="viewText"></div>
+      <div id="viewFile" style="margin-top:10px;"></div>
       <div class="modal-actions">
         <button type="button" id="closeViewBtn">Закрыть</button>
       </div>
