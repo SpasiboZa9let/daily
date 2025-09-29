@@ -4,6 +4,7 @@ let query = ''
 let lastDeleted = null
 let undoTimer = null
 
+// DOM-элементы
 const app = document.getElementById('app')
 const createBtn = document.getElementById('createNoteBtn')
 
@@ -69,7 +70,7 @@ function renderNotes() {
   // клики на карточки (открытие просмотра)
   document.querySelectorAll(".card").forEach(card => {
     card.addEventListener("click", (e) => {
-      if (e.target.tagName === "BUTTON") return // игнор кнопок
+      if (e.target.tagName === "BUTTON") return // не открывать, если клик по кнопке
       const idx = card.dataset.index
       openView(idx)
     })
@@ -157,12 +158,47 @@ undoLink?.addEventListener('click', () => {
 })
 
 // ======================= ПРОСМОТР ==========================
+function base64ToArrayBuffer(base64) {
+  const binaryString = atob(base64.split(',')[1])
+  const len = binaryString.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i)
+  return bytes.buffer
+}
+
 function openView(index) {
   const note = notes[index]
   viewTitle.textContent = note.title
   viewTopic.textContent = note.topic ? "Тема: " + note.topic : ""
   viewText.innerHTML = window.marked ? marked.parse(note.text || '') : (note.text || '')
-  viewFile.innerHTML = note.file ? `<a href="${note.file}" target="_blank">📂 Открыть файл</a>` : ""
+
+  if (note.file) {
+    let preview = ''
+    if (note.file.startsWith('data:image')) {
+      preview = `<img src="${note.file}" alt="Превью">`
+    } else if (note.file.startsWith('data:application/pdf')) {
+      preview = `<embed src="${note.file}" type="application/pdf" width="100%" height="400px">`
+    } else if (note.file.startsWith('data:text')) {
+      const text = atob(note.file.split(',')[1]).slice(0, 500)
+      preview = `<pre>${text}</pre>`
+    } else if (note.file.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+      // DOCX → mammoth
+      mammoth.extractRawText({ arrayBuffer: base64ToArrayBuffer(note.file) })
+        .then(result => {
+          viewFile.innerHTML = `<pre>${result.value}</pre>`
+        })
+        .catch(() => {
+          viewFile.innerHTML = `<a href="${note.file}" download="note.docx">📂 Скачать Word</a>`
+        })
+      preview = "Загружаю Word..."
+    } else {
+      preview = `<a href="${note.file}" target="_blank">📂 Открыть файл</a>`
+    }
+    viewFile.innerHTML = preview
+  } else {
+    viewFile.innerHTML = ""
+  }
+
   viewModal.classList.remove("hidden")
 }
 closeViewBtn.addEventListener("click", () => {
@@ -223,13 +259,12 @@ document.addEventListener('keydown', (e) => {
   }
 })
 
-// ======================= DRAG & DROP ФАЙЛОВ ==========================
+// ======================= DRAG & DROP ==========================
 window.addEventListener('dragover', e => { e.preventDefault() })
 window.addEventListener('drop', e => {
   e.preventDefault()
   const f = e.dataTransfer.files?.[0]
   if (!f) return
-  // открываем форму и подсовываем файл
   editIndex = null
   modalTitle.textContent = "Новая запись"
   modal.classList.remove("hidden")
@@ -237,51 +272,6 @@ window.addEventListener('drop', e => {
   const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files
   titleInput.value ||= f.name
 })
-// ... весь остальной код оставляем как был
-
-function base64ToArrayBuffer(base64) {
-  const binaryString = atob(base64.split(',')[1])
-  const len = binaryString.length
-  const bytes = new Uint8Array(len)
-  for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i)
-  return bytes.buffer
-}
-
-function openView(index) {
-  const note = notes[index]
-  viewTitle.textContent = note.title
-  viewTopic.textContent = note.topic ? "Тема: " + note.topic : ""
-  viewText.innerHTML = window.marked ? marked.parse(note.text || '') : (note.text || '')
-
-  if (note.file) {
-    let preview = ''
-    if (note.file.startsWith('data:image')) {
-      preview = `<img src="${note.file}" alt="Превью">`
-    } else if (note.file.startsWith('data:application/pdf')) {
-      preview = `<embed src="${note.file}" type="application/pdf" width="100%" height="400px">`
-    } else if (note.file.startsWith('data:text')) {
-      const text = atob(note.file.split(',')[1]).slice(0, 500)
-      preview = `<pre>${text}</pre>`
-    } else if (note.file.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
-      // DOCX → пробуем распарсить через mammoth
-      mammoth.extractRawText({ arrayBuffer: base64ToArrayBuffer(note.file) })
-        .then(result => {
-          viewFile.innerHTML = `<pre>${result.value}</pre>`
-        })
-        .catch(() => {
-          viewFile.innerHTML = `<a href="${note.file}" download="note.docx">📂 Скачать Word</a>`
-        })
-      preview = "Загружаю Word..."
-    } else {
-      preview = `<a href="${note.file}" target="_blank">📂 Открыть файл</a>`
-    }
-    viewFile.innerHTML = preview
-  } else {
-    viewFile.innerHTML = ""
-  }
-
-  viewModal.classList.remove("hidden")
-}
 
 // ======================= СТАРТ ==========================
 renderNotes()
