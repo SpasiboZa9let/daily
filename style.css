@@ -1,21 +1,21 @@
 :root {
   --white: #f5f5f5;
-  --text-muted: #aaa;
   --purple: #8a5cff;
   --border-color: #3b2a50;
-  --background-dark: #0a0015;
 }
 
 body {
   background: radial-gradient(circle at top, #0a0015, #000);
   font-family: "Segoe UI", sans-serif;
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   color: var(--white);
   text-align: center;
 }
 
 h1 { margin: 1rem 0; }
+
+#menu { margin: 10px 0; }
+#toolbar { margin: 6px 0 14px; }
 
 #searchInput {
   width: 280px;
@@ -35,7 +35,6 @@ h1 { margin: 1rem 0; }
   max-width: 1200px;
   margin: 0 auto;
 }
-
 .card {
   position: relative;
   background: linear-gradient(160deg, #120020, #1a002e);
@@ -43,55 +42,47 @@ h1 { margin: 1rem 0; }
   border: 1px solid var(--border-color);
   padding: 1.25em;
   min-height: 200px;
-  box-shadow: 0 0 10px rgba(138,92,255,0.2);
-  transition: transform .25s, box-shadow .25s;
   cursor: pointer;
+  transition: transform .25s, box-shadow .25s;
 }
 .card:hover { transform: translateY(-6px); box-shadow: 0 0 25px rgba(138,92,255,0.4); }
 
 .card__actions {
-  position: absolute;
-  top: 8px; right: 8px;
+  position: absolute; top: 8px; right: 8px;
   display: flex; gap: 6px;
 }
 .card__actions button {
   background: rgba(0,0,0,0.5);
-  border: none;
-  color: var(--white);
-  padding: 4px 6px;
-  border-radius: 6px;
+  border: none; color: var(--white);
+  padding: 4px 6px; border-radius: 6px;
   cursor: pointer;
 }
 .card__actions button:hover { background: var(--purple); }
 
 button {
   background: var(--purple);
-  border: none;
-  color: white;
-  padding: 10px 18px;
-  border-radius: 10px;
+  border: none; color: white;
+  padding: 10px 18px; border-radius: 10px;
   cursor: pointer;
-  transition: background .2s, box-shadow .2s;
 }
-button:hover { background:#6d3cff; box-shadow:0 0 15px rgba(138,92,255,0.6); }
+button:hover { background:#6d3cff; }
 
 /* модалки */
 .modal {
   position: fixed; top:0; left:0; right:0; bottom:0;
   background: rgba(0,0,0,0.7);
-  display: flex; justify-content: center; align-items: center;
+  display: flex; justify-content:center; align-items:center;
   z-index: 100;
 }
-.hidden { display:none; }
-
+.hidden { display: none; }
 .modal-content {
   background:#1a002e;
-  padding:20px;
-  border-radius:12px;
+  padding:20px; border-radius:12px;
   max-width:600px; width:90%;
   text-align:left;
 }
 
+/* тост */
 #toast {
   position:fixed; bottom:20px; left:50%;
   transform:translateX(-50%);
@@ -100,9 +91,9 @@ button:hover { background:#6d3cff; box-shadow:0 0 15px rgba(138,92,255,0.6); }
   padding:10px 14px;
   border-radius:10px;
 }
-#toast a { color:var(--purple); cursor:pointer; }
+#toast a { color: var(--purple); cursor: pointer; }
 
-/* файлы в просмотре */
+/* предпросмотр файлов */
 #viewFile div {
   margin-top: 10px;
   padding: 10px;
@@ -110,8 +101,17 @@ button:hover { background:#6d3cff; box-shadow:0 0 15px rgba(138,92,255,0.6); }
   border-radius: 8px;
   background: #120020;
 }
-#viewFile img, #viewFile embed, #viewFile pre {
-  margin-top:6px;
-  border-radius:6px;
-  max-width:100%;
+
+/* карусель */
+#viewFile.carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+#viewFile.carousel img {
+  max-height: 180px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
 }
