@@ -26,51 +26,46 @@ const toast = document.getElementById('toast')
 const undoLink = document.getElementById('undoLink')
 const densityBtn = document.getElementById('densityBtn')
 
-/* ======= тема → иконка + цвет ======= */
+/* ======= topic → icon/color ======= */
 function getTopicMeta(topic = "") {
   const t = (topic || "").toLowerCase()
   const table = [
-    { keys: ['работ', 'work'],                 emoji: '🛠', hue: 265 },
-    { keys: ['лич', 'personal'],               emoji: '🏷️', hue: 200 },
-    { keys: ['иде', 'idea'],                   emoji: '💡', hue: 45  },
-    { keys: ['учеб','учёб','study','school'],  emoji: '🎓', hue: 160 },
-    { keys: ['фин','бюдж','money','budget'],   emoji: '💰', hue: 110 },
-    { keys: ['путеш','trip','travel'],         emoji: '✈️', hue: 15  },
-    { keys: ['арт','рис','карт','design','art'],emoji: '🎨', hue: 300 },
-    { keys: ['здоров','спорт','health'],       emoji: '❤️', hue: 350 },
-    { keys: ['встреч','мит','meet'],           emoji: '📅', hue: 210 },
-    { keys: ['покуп','shop','buy'],            emoji: '🛒', hue: 20  },
+    { keys: ['работ','work'], emoji: '🛠', hue: 265 },
+    { keys: ['лич','personal'], emoji: '🏷️', hue: 200 },
+    { keys: ['иде','idea'], emoji: '💡', hue: 45 },
+    { keys: ['учеб','учёб','study','school'], emoji: '🎓', hue: 160 },
+    { keys: ['фин','бюдж','money'], emoji: '💰', hue: 110 },
+    { keys: ['путеш','trip','travel'], emoji: '✈️', hue: 15 },
+    { keys: ['арт','рис','design','art'], emoji: '🎨', hue: 300 },
+    { keys: ['здоров','спорт','health'], emoji: '❤️', hue: 350 },
+    { keys: ['встреч','мит','meet'], emoji: '📅', hue: 210 },
+    { keys: ['покуп','shop'], emoji: '🛒', hue: 20 },
   ]
-  for (const row of table) if (row.keys.some(k => t.includes(k)))
-    return { emoji: row.emoji, color: `hsl(${row.hue}, 70%, 55%)` }
-
-  // дефолт: стабильный цвет по хешу строки
-  const hue = [...t].reduce((a,c)=> (a + c.charCodeAt(0)) % 360, 265)
-  return { emoji: '🗒️', color: `hsl(${hue}, 70%, 55%)` }
+  for (const row of table) if (row.keys.some(k=>t.includes(k)))
+    return { emoji: row.emoji, color:`hsl(${row.hue},70%,55%)` }
+  const hue = [...t].reduce((a,c)=>(a+c.charCodeAt(0))%360,265)
+  return { emoji:'🗒️', color:`hsl(${hue},70%,55%)` }
 }
 
-/* small utils */
 function base64ToArrayBuffer(b64){
   const bin=atob(b64.split(',')[1]); const len=bin.length; const bytes=new Uint8Array(len)
   for(let i=0;i<len;i++)bytes[i]=bin.charCodeAt(i)
   return bytes.buffer
 }
 
-/* ======= РЕНДЕР ======= */
+/* ======= render notes ======= */
 function renderNotes() {
-  // сохраняем исходные индексы, чтобы edit/delete работали в поиске
   const filtered = notes
-    .map((n, idx) => ({ n, idx }))
-    .filter(({n}) =>
+    .map((n, idx)=>({n,idx}))
+    .filter(({n})=>
       (n.title||'').toLowerCase().includes(query) ||
       (n.topic||'').toLowerCase().includes(query) ||
-      (n.text ||'').toLowerCase().includes(query)
+      (n.text||'').toLowerCase().includes(query)
     )
-
-  app.innerHTML = `
+  app.innerHTML=`
     <div class="card-grid">
-      ${filtered.map(({n, idx}) => {
-        const meta = getTopicMeta(n.topic)
+      ${filtered.map(({n,idx})=>{
+        const meta=getTopicMeta(n.topic)
         return `
           <div class="card card--accent" data-index="${idx}" style="--accent:${meta.color}">
             <div class="card__actions">
@@ -78,17 +73,15 @@ function renderNotes() {
               <button onclick="deleteNote(${idx})">❌</button>
             </div>
             <div class="card__header">
-              <span class="topic-badge" style="--accent:${meta.color}">${meta.emoji} ${n.topic || "Без темы"}</span>
+              <span class="topic-badge" style="--accent:${meta.color}">${meta.emoji} ${n.topic||"Без темы"}</span>
             </div>
             <div class="card__content">
               <h2 class="card__title">${n.title}</h2>
               <p class="card__description">${n.text.slice(0,80)}${n.text.length>80?"...":""}</p>
             </div>
-          </div>
-        `
+          </div>`
       }).join('')}
     </div>`
-
   document.querySelectorAll(".card").forEach(card=>{
     card.addEventListener("click",e=>{
       if(e.target.tagName==="BUTTON")return
@@ -97,68 +90,55 @@ function renderNotes() {
   })
 }
 
-/* ======= СОЗДАНИЕ / СОХРАНЕНИЕ ======= */
+/* ======= создание ======= */
 createBtn.onclick=()=>{
-  editIndex=null
-  modalTitle.textContent="Новая запись"
-  modal.classList.remove("hidden")
-  form.reset()
+  editIndex=null; modalTitle.textContent="Новая запись"; modal.classList.remove("hidden"); form.reset()
 }
 cancelBtn.onclick=()=> modal.classList.add("hidden")
-
 form.onsubmit=(e)=>{
   e.preventDefault()
   const title=titleInput.value.trim(), topic=topicInput.value.trim(), text=textInput.value.trim()
   const files=fileInput.files
   if(files.length>0){
     const promises=[...files].map(f=>new Promise(res=>{
-      const r=new FileReader()
-      r.onload=()=>res({name:f.name,data:r.result})
-      r.readAsDataURL(f)
+      const r=new FileReader(); r.onload=()=>res({name:f.name,data:r.result}); r.readAsDataURL(f)
     }))
     Promise.all(promises).then(results=>{
-      saveNote(title,topic,text,results)
-      modal.classList.add("hidden")
+      saveNote(title,topic,text,results); modal.classList.add("hidden")
     })
   } else {
-    saveNote(title,topic,text,editIndex!==null?notes[editIndex].files:[])
-    modal.classList.add("hidden")
+    saveNote(title,topic,text,editIndex!==null?notes[editIndex].files:[]); modal.classList.add("hidden")
   }
 }
 function saveNote(title,topic,text,files){
   const newNote={title,topic,text,files}
-  if(editIndex!==null){ notes[editIndex]=newNote; editIndex=null } else notes.push(newNote)
-  localStorage.setItem("dailyNotes",JSON.stringify(notes))
-  renderNotes()
+  if(editIndex!==null){notes[editIndex]=newNote; editIndex=null}else notes.push(newNote)
+  localStorage.setItem("dailyNotes",JSON.stringify(notes)); renderNotes()
 }
 
-/* ======= РЕДАКТ/УДАЛ ======= */
+/* ======= edit/delete ======= */
 window.editNote=i=>{
-  editIndex=i
-  const n=notes[i]
+  editIndex=i; const n=notes[i]
   modalTitle.textContent="Редактировать запись"
   titleInput.value=n.title; topicInput.value=n.topic; textInput.value=n.text
   modal.classList.remove("hidden")
 }
 window.deleteNote=i=>{
-  const removed=notes.splice(i,1)[0]
-  lastDeleted={removed,index:i}
-  localStorage.setItem("dailyNotes",JSON.stringify(notes))
-  renderNotes(); showToast()
+  const removed=notes.splice(i,1)[0]; lastDeleted={removed,index:i}
+  localStorage.setItem("dailyNotes",JSON.stringify(notes)); renderNotes(); showToast()
 }
 function showToast(){
-  toast.classList.remove('hidden')
-  clearTimeout(undoTimer)
+  toast.classList.remove('hidden'); clearTimeout(undoTimer)
   undoTimer=setTimeout(()=>toast.classList.add('hidden'),5000)
 }
 undoLink.onclick=()=>{
   if(!lastDeleted)return
   notes.splice(lastDeleted.index,0,lastDeleted.removed)
-  localStorage.setItem("dailyNotes",JSON.stringify(notes))
-  lastDeleted=null; toast.classList.add('hidden'); renderNotes()
+  localStorage.setItem("dailyNotes",JSON.stringify(notes)); lastDeleted=null
+  toast.classList.add('hidden'); renderNotes()
 }
 
-/* ======= ПРОСМОТР ======= */
+/* ======= file preview ======= */
 function renderFilePreview(f){
   const {name,data}=f
   if(data.startsWith('data:image'))
@@ -166,36 +146,48 @@ function renderFilePreview(f){
   if(data.startsWith('data:application/pdf'))
     return `<div><p>📄 ${name}</p><embed src="${data}" type="application/pdf" width="100%" height="300"></div>`
   if(data.startsWith('data:text')){
-    const text=atob(data.split(',')[1]).slice(0,300)
+    const text=atob(data.split(',')[1]).slice(0,500)
     return `<div><p>📄 ${name}</p><pre>${text}</pre></div>`
   }
   if(data.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml.document')){
     mammoth.extractRawText({arrayBuffer:base64ToArrayBuffer(data)})
-      .then(r=>{
-        document.querySelectorAll('#viewFile pre.loading').forEach(el=>{
-          if(el.dataset.file===name)el.outerHTML=`<pre>${r.value}</pre>`
-        })
-      })
+      .then(r=>{document.querySelectorAll('#viewFile pre.loading').forEach(el=>{if(el.dataset.file===name)el.outerHTML=`<pre>${r.value}</pre>`})})
     return `<div><p>📄 ${name}</p><pre class="loading" data-file="${name}">Загружаю Word...</pre></div>`
   }
+  if(data.startsWith('data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')){
+    try{
+      const wb=XLSX.read(base64ToArrayBuffer(data),{type:"array"})
+      const sheet=wb.Sheets[wb.SheetNames[0]]
+      const json=XLSX.utils.sheet_to_json(sheet,{header:1,raw:false})
+      const preview=json.slice(0,5).map(r=>"<tr>"+r.map(c=>`<td>${c||""}</td>`).join("")+"</tr>").join("")
+      return `<div><p>📊 ${name}</p><table><tbody>${preview}</tbody></table></div>`
+    }catch(e){
+      return `<div><p>📊 ${name}</p><a href="${data}" download="${name}">📂 Скачать Excel</a></div>`
+    }
+  }
+  if(data.startsWith('data:application/vnd.openxmlformats-officedocument.presentationml.presentation'))
+    return `<div><p>📽 ${name}</p><a href="${data}" download="${name}">📂 Скачать презентацию</a></div>`
+  if(name.match(/\.(mp3|wav|ogg)$/i))
+    return `<div><p>🎵 ${name}</p><audio controls src="${data}"></audio></div>`
+  if(name.match(/\.(mp4|webm|ogg)$/i))
+    return `<div><p>🎥 ${name}</p><video controls src="${data}"></video></div>`
   return `<div><p>📎 ${name}</p><a href="${data}" download="${name}">📂 Скачать</a></div>`
 }
+
 function openView(i){
-  const n=notes[i]
-  const meta = getTopicMeta(n.topic)
+  const n=notes[i]; const meta=getTopicMeta(n.topic)
   viewTitle.textContent=n.title
   viewTopic.textContent=n.topic?`${meta.emoji} Тема: ${n.topic}`:""
   viewText.innerHTML=window.marked?marked.parse(n.text||''):(n.text||'')
-
-  const hasImage = (n.files||[]).some(f=>f.data.startsWith('data:image'))
-  viewFile.className = hasImage ? "carousel" : ""
+  const hasImage=(n.files||[]).some(f=>f.data.startsWith('data:image'))
+  viewFile.className=hasImage?"carousel":""
   viewFile.innerHTML=(n.files||[]).map(renderFilePreview).join("")
   viewModal.classList.remove("hidden")
 }
 closeViewBtn.onclick=()=>viewModal.classList.add("hidden")
 
-/* ======= ПОИСК / ЭКСПОРТ / ИМПОРТ ======= */
-searchInput.oninput=()=>{ query=searchInput.value.toLowerCase(); renderNotes() }
+/* ======= поиск/экспорт/импорт ======= */
+searchInput.oninput=()=>{query=searchInput.value.toLowerCase();renderNotes()}
 exportBtn.onclick=()=>{
   const blob=new Blob([JSON.stringify(notes)],{type:'application/json'})
   const url=URL.createObjectURL(blob); const a=document.createElement('a')
@@ -204,15 +196,10 @@ exportBtn.onclick=()=>{
 importBtn.onclick=()=>importInput.click()
 importInput.onchange=e=>{
   const f=e.target.files[0]; if(!f)return
-  const r=new FileReader()
-  r.onload=()=>{
-    try{ notes=JSON.parse(r.result); localStorage.setItem("dailyNotes",JSON.stringify(notes)); renderNotes() }
-    catch{ alert('Некорректный JSON') }
-  }
-  r.readAsText(f)
+  const r=new FileReader(); r.onload=()=>{notes=JSON.parse(r.result);localStorage.setItem("dailyNotes",JSON.stringify(notes));renderNotes()}; r.readAsText(f)
 }
 
-/* ======= ПЛОТНОСТЬ / КЛАВИАТУРА / DND ======= */
+/* ======= плотность/клавиши/DnD ======= */
 densityBtn.onclick=()=>{
   document.body.classList.toggle('compact')
   densityBtn.textContent=document.body.classList.contains('compact')?'Удобочитаемо':'Компактно'
@@ -231,5 +218,4 @@ window.addEventListener('drop',e=>{
   titleInput.value ||= f.name
 })
 
-/* ======= старт ======= */
 renderNotes()
