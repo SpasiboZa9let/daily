@@ -26,29 +26,69 @@ const toast = document.getElementById('toast')
 const undoLink = document.getElementById('undoLink')
 const densityBtn = document.getElementById('densityBtn')
 
-// ================== РЕНДЕР ==================
+/* ======= тема → иконка + цвет ======= */
+function getTopicMeta(topic = "") {
+  const t = (topic || "").toLowerCase()
+  const table = [
+    { keys: ['работ', 'work'],                 emoji: '🛠', hue: 265 },
+    { keys: ['лич', 'personal'],               emoji: '🏷️', hue: 200 },
+    { keys: ['иде', 'idea'],                   emoji: '💡', hue: 45  },
+    { keys: ['учеб','учёб','study','school'],  emoji: '🎓', hue: 160 },
+    { keys: ['фин','бюдж','money','budget'],   emoji: '💰', hue: 110 },
+    { keys: ['путеш','trip','travel'],         emoji: '✈️', hue: 15  },
+    { keys: ['арт','рис','карт','design','art'],emoji: '🎨', hue: 300 },
+    { keys: ['здоров','спорт','health'],       emoji: '❤️', hue: 350 },
+    { keys: ['встреч','мит','meet'],           emoji: '📅', hue: 210 },
+    { keys: ['покуп','shop','buy'],            emoji: '🛒', hue: 20  },
+  ]
+  for (const row of table) if (row.keys.some(k => t.includes(k)))
+    return { emoji: row.emoji, color: `hsl(${row.hue}, 70%, 55%)` }
+
+  // дефолт: стабильный цвет по хешу строки
+  const hue = [...t].reduce((a,c)=> (a + c.charCodeAt(0)) % 360, 265)
+  return { emoji: '🗒️', color: `hsl(${hue}, 70%, 55%)` }
+}
+
+/* small utils */
+function base64ToArrayBuffer(b64){
+  const bin=atob(b64.split(',')[1]); const len=bin.length; const bytes=new Uint8Array(len)
+  for(let i=0;i<len;i++)bytes[i]=bin.charCodeAt(i)
+  return bytes.buffer
+}
+
+/* ======= РЕНДЕР ======= */
 function renderNotes() {
-  const filtered = notes.filter(n =>
-    (n.title||'').toLowerCase().includes(query) ||
-    (n.topic||'').toLowerCase().includes(query) ||
-    (n.text||'').toLowerCase().includes(query)
-  )
+  // сохраняем исходные индексы, чтобы edit/delete работали в поиске
+  const filtered = notes
+    .map((n, idx) => ({ n, idx }))
+    .filter(({n}) =>
+      (n.title||'').toLowerCase().includes(query) ||
+      (n.topic||'').toLowerCase().includes(query) ||
+      (n.text ||'').toLowerCase().includes(query)
+    )
+
   app.innerHTML = `
     <div class="card-grid">
-      ${filtered.map((n,i)=>`
-        <div class="card" data-index="${i}">
-          <div class="card__actions">
-            <button onclick="editNote(${i})">✏️</button>
-            <button onclick="deleteNote(${i})">❌</button>
+      ${filtered.map(({n, idx}) => {
+        const meta = getTopicMeta(n.topic)
+        return `
+          <div class="card card--accent" data-index="${idx}" style="--accent:${meta.color}">
+            <div class="card__actions">
+              <button onclick="editNote(${idx})">✏️</button>
+              <button onclick="deleteNote(${idx})">❌</button>
+            </div>
+            <div class="card__header">
+              <span class="topic-badge" style="--accent:${meta.color}">${meta.emoji} ${n.topic || "Без темы"}</span>
+            </div>
+            <div class="card__content">
+              <h2 class="card__title">${n.title}</h2>
+              <p class="card__description">${n.text.slice(0,80)}${n.text.length>80?"...":""}</p>
+            </div>
           </div>
-          <div class="card__header">${n.topic||"Без темы"}</div>
-          <div class="card__content">
-            <h2 class="card__title">${n.title}</h2>
-            <p class="card__description">${n.text.slice(0,80)}${n.text.length>80?"...":""}</p>
-          </div>
-        </div>
-      `).join('')}
+        `
+      }).join('')}
     </div>`
+
   document.querySelectorAll(".card").forEach(card=>{
     card.addEventListener("click",e=>{
       if(e.target.tagName==="BUTTON")return
@@ -57,7 +97,7 @@ function renderNotes() {
   })
 }
 
-// ================== СОЗДАНИЕ / СОХРАНЕНИЕ ==================
+/* ======= СОЗДАНИЕ / СОХРАНЕНИЕ ======= */
 createBtn.onclick=()=>{
   editIndex=null
   modalTitle.textContent="Новая запись"
@@ -92,7 +132,7 @@ function saveNote(title,topic,text,files){
   renderNotes()
 }
 
-// ================== РЕДАКТИРОВАНИЕ ==================
+/* ======= РЕДАКТ/УДАЛ ======= */
 window.editNote=i=>{
   editIndex=i
   const n=notes[i]
@@ -100,8 +140,6 @@ window.editNote=i=>{
   titleInput.value=n.title; topicInput.value=n.topic; textInput.value=n.text
   modal.classList.remove("hidden")
 }
-
-// ================== УДАЛЕНИЕ + UNDO ==================
 window.deleteNote=i=>{
   const removed=notes.splice(i,1)[0]
   lastDeleted={removed,index:i}
@@ -120,12 +158,7 @@ undoLink.onclick=()=>{
   lastDeleted=null; toast.classList.add('hidden'); renderNotes()
 }
 
-// ================== ПРОСМОТР ==================
-function base64ToArrayBuffer(b64){
-  const bin=atob(b64.split(',')[1]); const len=bin.length; const bytes=new Uint8Array(len)
-  for(let i=0;i<len;i++)bytes[i]=bin.charCodeAt(i)
-  return bytes.buffer
-}
+/* ======= ПРОСМОТР ======= */
 function renderFilePreview(f){
   const {name,data}=f
   if(data.startsWith('data:image'))
@@ -149,11 +182,11 @@ function renderFilePreview(f){
 }
 function openView(i){
   const n=notes[i]
+  const meta = getTopicMeta(n.topic)
   viewTitle.textContent=n.title
-  viewTopic.textContent=n.topic?"Тема: "+n.topic:""
+  viewTopic.textContent=n.topic?`${meta.emoji} Тема: ${n.topic}`:""
   viewText.innerHTML=window.marked?marked.parse(n.text||''):(n.text||'')
 
-  // если есть хотя бы одно изображение → включаем карусель
   const hasImage = (n.files||[]).some(f=>f.data.startsWith('data:image'))
   viewFile.className = hasImage ? "carousel" : ""
   viewFile.innerHTML=(n.files||[]).map(renderFilePreview).join("")
@@ -161,7 +194,7 @@ function openView(i){
 }
 closeViewBtn.onclick=()=>viewModal.classList.add("hidden")
 
-// ================== ПОИСК / ЭКСПОРТ / ИМПОРТ ==================
+/* ======= ПОИСК / ЭКСПОРТ / ИМПОРТ ======= */
 searchInput.oninput=()=>{ query=searchInput.value.toLowerCase(); renderNotes() }
 exportBtn.onclick=()=>{
   const blob=new Blob([JSON.stringify(notes)],{type:'application/json'})
@@ -172,11 +205,14 @@ importBtn.onclick=()=>importInput.click()
 importInput.onchange=e=>{
   const f=e.target.files[0]; if(!f)return
   const r=new FileReader()
-  r.onload=()=>{ notes=JSON.parse(r.result); localStorage.setItem("dailyNotes",JSON.stringify(notes)); renderNotes() }
+  r.onload=()=>{
+    try{ notes=JSON.parse(r.result); localStorage.setItem("dailyNotes",JSON.stringify(notes)); renderNotes() }
+    catch{ alert('Некорректный JSON') }
+  }
   r.readAsText(f)
 }
 
-// ================== ПЛОТНОСТЬ / КЛАВИАТУРА ==================
+/* ======= ПЛОТНОСТЬ / КЛАВИАТУРА / DND ======= */
 densityBtn.onclick=()=>{
   document.body.classList.toggle('compact')
   densityBtn.textContent=document.body.classList.contains('compact')?'Удобочитаемо':'Компактно'
@@ -186,8 +222,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='/'&&document.activeElement!==searchInput){e.preventDefault();searchInput.focus()}
   if(e.key==='Escape'){modal.classList.add('hidden');viewModal.classList.add('hidden');toast.classList.add('hidden')}
 })
-
-// ================== DRAG & DROP ==================
 window.addEventListener('dragover',e=>e.preventDefault())
 window.addEventListener('drop',e=>{
   e.preventDefault()
@@ -197,5 +231,5 @@ window.addEventListener('drop',e=>{
   titleInput.value ||= f.name
 })
 
-// ================== СТАРТ ==================
+/* ======= старт ======= */
 renderNotes()
