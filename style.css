@@ -164,3 +164,20 @@ button:hover { background:#6d3cff; }
   border-radius: 6px;
   object-fit: cover;
 }
+/* Модалка */
+.modal-content {
+  background:#1a002e;
+  padding:20px;
+  border-radius:12px;
+  max-width:800px;   /* можно чуть шире для таблиц */
+  width:90%;
+  max-height:90vh;   /* ограничиваем высоту */
+  overflow-y:auto;   /* включаем вертикальный скролл */
+  text-align:left;
+}
+
+/* контент внутри */
+#viewText, #viewFile {
+  margin-top: 10px;
+  overflow-x: auto;  /* горизонтальный скролл для таблиц/широких файлов */
+}
