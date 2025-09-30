@@ -2,7 +2,7 @@
   --white: #f5f5f5;
   --purple: #8a5cff;
   --border-color: #3b2a50;
-  --accent: #8a5cff; /* фолбэк */
+  --accent: #8a5cff;
 }
 
 body {
@@ -36,8 +36,6 @@ h1 { margin: 1rem 0; }
   max-width: 1200px;
   margin: 0 auto;
 }
-
-/* карточка */
 .card {
   position: relative;
   background: linear-gradient(160deg, #120020, #1a002e);
@@ -50,7 +48,7 @@ h1 { margin: 1rem 0; }
 }
 .card:hover { transform: translateY(-6px); box-shadow: 0 0 25px rgba(138,92,255,0.35); }
 
-/* цветной градиентный бордер по теме */
+/* акцент */
 .card--accent::before{
   content:"";
   position:absolute; inset:-1px;
@@ -66,17 +64,12 @@ h1 { margin: 1rem 0; }
 }
 .card--accent:hover { box-shadow: 0 0 22px var(--accent); }
 
-/* заголовок/контент */
-.card__header { text-align:left; margin-bottom: .6em; }
-.card__title  { text-align:left; margin: .25em 0; font-size: 20px; font-weight: 700; }
-.card__description { text-align:left; color:#ddd; }
-
-/* бейдж темы */
+/* бейдж */
 .topic-badge{
   display:inline-flex; align-items:center; gap:6px;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px; letter-spacing:.2px;
+  font-size: 12px;
   border: 1px solid var(--accent);
   color: var(--accent);
   background: rgba(255,255,255,0.04);
@@ -95,14 +88,13 @@ h1 { margin: 1rem 0; }
 }
 .card__actions button:hover { background: var(--purple); }
 
-/* кнопки */
 button {
   background: var(--purple);
   border: none; color: white;
   padding: 10px 18px; border-radius: 10px;
-  cursor: pointer; transition: background .2s, box-shadow .2s;
+  cursor: pointer;
 }
-button:hover { background:#6d3cff; box-shadow:0 0 15px rgba(138,92,255,0.6); }
+button:hover { background:#6d3cff; }
 
 /* модалки */
 .modal {
@@ -130,7 +122,7 @@ button:hover { background:#6d3cff; box-shadow:0 0 15px rgba(138,92,255,0.6); }
 }
 #toast a { color: var(--purple); cursor: pointer; }
 
-/* предпросмотр файлов (общий) */
+/* предпросмотр файлов */
 #viewFile div {
   margin-top: 10px;
   padding: 10px;
@@ -138,8 +130,28 @@ button:hover { background:#6d3cff; box-shadow:0 0 15px rgba(138,92,255,0.6); }
   border-radius: 8px;
   background: #120020;
 }
+#viewFile img, #viewFile embed, #viewFile pre {
+  margin-top:6px;
+  border-radius:6px;
+  max-width:100%;
+}
+#viewFile audio, #viewFile video {
+  margin-top: 8px;
+  max-width: 100%;
+  border-radius: 6px;
+}
+#viewFile table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+#viewFile th, #viewFile td {
+  border: 1px solid #34214a;
+  padding: 4px 6px;
+}
 
-/* карусель изображений */
+/* карусель */
 #viewFile.carousel {
   display: flex;
   gap: 10px;
