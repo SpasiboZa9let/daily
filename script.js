@@ -57,7 +57,7 @@ function renderNotes() {
   })
 }
 
-// ================== СОЗДАНИЕ ==================
+// ================== СОЗДАНИЕ / СОХРАНЕНИЕ ==================
 createBtn.onclick=()=>{
   editIndex=null
   modalTitle.textContent="Новая запись"
@@ -131,9 +131,9 @@ function renderFilePreview(f){
   if(data.startsWith('data:image'))
     return `<div><p>📷 ${name}</p><img src="${data}" alt="${name}"></div>`
   if(data.startsWith('data:application/pdf'))
-    return `<div><p>📄 ${name}</p><embed src="${data}" type="application/pdf" width="100%" height="400"></div>`
+    return `<div><p>📄 ${name}</p><embed src="${data}" type="application/pdf" width="100%" height="300"></div>`
   if(data.startsWith('data:text')){
-    const text=atob(data.split(',')[1]).slice(0,500)
+    const text=atob(data.split(',')[1]).slice(0,300)
     return `<div><p>📄 ${name}</p><pre>${text}</pre></div>`
   }
   if(data.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml.document')){
@@ -152,15 +152,17 @@ function openView(i){
   viewTitle.textContent=n.title
   viewTopic.textContent=n.topic?"Тема: "+n.topic:""
   viewText.innerHTML=window.marked?marked.parse(n.text||''):(n.text||'')
-  viewFile.innerHTML=(n.files||[]).map(renderFilePreview).join("<hr>")
+
+  // если есть хотя бы одно изображение → включаем карусель
+  const hasImage = (n.files||[]).some(f=>f.data.startsWith('data:image'))
+  viewFile.className = hasImage ? "carousel" : ""
+  viewFile.innerHTML=(n.files||[]).map(renderFilePreview).join("")
   viewModal.classList.remove("hidden")
 }
 closeViewBtn.onclick=()=>viewModal.classList.add("hidden")
 
-// ================== ПОИСК ==================
+// ================== ПОИСК / ЭКСПОРТ / ИМПОРТ ==================
 searchInput.oninput=()=>{ query=searchInput.value.toLowerCase(); renderNotes() }
-
-// ================== ЭКСПОРТ/ИМПОРТ ==================
 exportBtn.onclick=()=>{
   const blob=new Blob([JSON.stringify(notes)],{type:'application/json'})
   const url=URL.createObjectURL(blob); const a=document.createElement('a')
@@ -170,20 +172,15 @@ importBtn.onclick=()=>importInput.click()
 importInput.onchange=e=>{
   const f=e.target.files[0]; if(!f)return
   const r=new FileReader()
-  r.onload=()=>{
-    try{ notes=JSON.parse(r.result); localStorage.setItem("dailyNotes",JSON.stringify(notes)); renderNotes() }
-    catch{ alert('Некорректный JSON') }
-  }
+  r.onload=()=>{ notes=JSON.parse(r.result); localStorage.setItem("dailyNotes",JSON.stringify(notes)); renderNotes() }
   r.readAsText(f)
 }
 
-// ================== ПЛОТНОСТЬ ==================
+// ================== ПЛОТНОСТЬ / КЛАВИАТУРА ==================
 densityBtn.onclick=()=>{
   document.body.classList.toggle('compact')
   densityBtn.textContent=document.body.classList.contains('compact')?'Удобочитаемо':'Компактно'
 }
-
-// ================== КЛАВИАТУРА ==================
 document.addEventListener('keydown',e=>{
   if(e.key==='n'&&modal.classList.contains('hidden')&&viewModal.classList.contains('hidden')){e.preventDefault();createBtn.click()}
   if(e.key==='/'&&document.activeElement!==searchInput){e.preventDefault();searchInput.focus()}
