@@ -66,6 +66,21 @@ function renderNotes() {
     <div class="card-grid">
       ${filtered.map(({n,idx})=>{
         const meta=getTopicMeta(n.topic)
+
+        // превью файлов
+        let filePreview = ""
+        if (n.files && n.files.length > 0) {
+          const previews = n.files.slice(0,3).map((f,j)=>{
+            if(f.data.startsWith('data:image')){
+              return `<img src="${f.data}" alt="${f.name}" data-idx="${idx}" data-f="${j}" />`
+            } else {
+              return `<div class="file-icon" data-idx="${idx}" data-f="${j}">📎 ${f.name.split('.').pop()}</div>`
+            }
+          }).join("")
+          const more = n.files.length>3 ? `<span class="more">+${n.files.length-3}</span>` : ""
+          filePreview = `<div class="card__files">${previews}${more}</div>`
+        }
+
         return `
           <div class="card card--accent" data-index="${idx}" style="--accent:${meta.color}">
             <div class="card__actions">
@@ -78,14 +93,26 @@ function renderNotes() {
             <div class="card__content">
               <h2 class="card__title">${n.title}</h2>
               <p class="card__description">${n.text.slice(0,80)}${n.text.length>80?"...":""}</p>
+              ${filePreview}
             </div>
           </div>`
       }).join('')}
     </div>`
+
+  // обычный клик по карточке (без файлов/кнопок)
   document.querySelectorAll(".card").forEach(card=>{
     card.addEventListener("click",e=>{
-      if(e.target.tagName==="BUTTON")return
+      if(e.target.tagName==="BUTTON" || e.target.closest(".card__files")) return
       openView(card.dataset.index)
+    })
+  })
+
+  // клики по файлам
+  document.querySelectorAll(".card__files img, .card__files .file-icon").forEach(el=>{
+    el.addEventListener("click", e=>{
+      e.stopPropagation()
+      const noteIdx = el.dataset.idx
+      openView(noteIdx)
     })
   })
 }
@@ -141,19 +168,27 @@ undoLink.onclick=()=>{
 /* ======= file preview ======= */
 function renderFilePreview(f){
   const {name,data}=f
-  if(data.startsWith('data:image'))
+    if(data.startsWith('data:image'))
     return `<div><p>📷 ${name}</p><img src="${data}" alt="${name}"></div>`
+
   if(data.startsWith('data:application/pdf'))
     return `<div><p>📄 ${name}</p><embed src="${data}" type="application/pdf" width="100%" height="300"></div>`
+
   if(data.startsWith('data:text')){
     const text=atob(data.split(',')[1]).slice(0,500)
     return `<div><p>📄 ${name}</p><pre>${text}</pre></div>`
   }
+
   if(data.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml.document')){
     mammoth.extractRawText({arrayBuffer:base64ToArrayBuffer(data)})
-      .then(r=>{document.querySelectorAll('#viewFile pre.loading').forEach(el=>{if(el.dataset.file===name)el.outerHTML=`<pre>${r.value}</pre>`})})
+      .then(r=>{
+        document.querySelectorAll('#viewFile pre.loading').forEach(el=>{
+          if(el.dataset.file===name) el.outerHTML=`<pre>${r.value}</pre>`
+        })
+      })
     return `<div><p>📄 ${name}</p><pre class="loading" data-file="${name}">Загружаю Word...</pre></div>`
   }
+
   if(data.startsWith('data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')){
     try{
       const wb=XLSX.read(base64ToArrayBuffer(data),{type:"array"})
@@ -165,23 +200,30 @@ function renderFilePreview(f){
       return `<div><p>📊 ${name}</p><a href="${data}" download="${name}">📂 Скачать Excel</a></div>`
     }
   }
+
   if(data.startsWith('data:application/vnd.openxmlformats-officedocument.presentationml.presentation'))
     return `<div><p>📽 ${name}</p><a href="${data}" download="${name}">📂 Скачать презентацию</a></div>`
+
   if(name.match(/\.(mp3|wav|ogg)$/i))
     return `<div><p>🎵 ${name}</p><audio controls src="${data}"></audio></div>`
+
   if(name.match(/\.(mp4|webm|ogg)$/i))
     return `<div><p>🎥 ${name}</p><video controls src="${data}"></video></div>`
+
   return `<div><p>📎 ${name}</p><a href="${data}" download="${name}">📂 Скачать</a></div>`
 }
 
+/* ======= просмотр ======= */
 function openView(i){
   const n=notes[i]; const meta=getTopicMeta(n.topic)
   viewTitle.textContent=n.title
   viewTopic.textContent=n.topic?`${meta.emoji} Тема: ${n.topic}`:""
   viewText.innerHTML=window.marked?marked.parse(n.text||''):(n.text||'')
+
   const hasImage=(n.files||[]).some(f=>f.data.startsWith('data:image'))
   viewFile.className=hasImage?"carousel":""
   viewFile.innerHTML=(n.files||[]).map(renderFilePreview).join("")
+
   viewModal.classList.remove("hidden")
 }
 closeViewBtn.onclick=()=>viewModal.classList.add("hidden")
@@ -196,7 +238,15 @@ exportBtn.onclick=()=>{
 importBtn.onclick=()=>importInput.click()
 importInput.onchange=e=>{
   const f=e.target.files[0]; if(!f)return
-  const r=new FileReader(); r.onload=()=>{notes=JSON.parse(r.result);localStorage.setItem("dailyNotes",JSON.stringify(notes));renderNotes()}; r.readAsText(f)
+  const r=new FileReader()
+  r.onload=()=>{
+    try{
+      notes=JSON.parse(r.result)
+      localStorage.setItem("dailyNotes",JSON.stringify(notes))
+      renderNotes()
+    }catch{ alert('Некорректный JSON') }
+  }
+  r.readAsText(f)
 }
 
 /* ======= плотность/клавиши/DnD ======= */
@@ -204,18 +254,33 @@ densityBtn.onclick=()=>{
   document.body.classList.toggle('compact')
   densityBtn.textContent=document.body.classList.contains('compact')?'Удобочитаемо':'Компактно'
 }
+
 document.addEventListener('keydown',e=>{
-  if(e.key==='n'&&modal.classList.contains('hidden')&&viewModal.classList.contains('hidden')){e.preventDefault();createBtn.click()}
-  if(e.key==='/'&&document.activeElement!==searchInput){e.preventDefault();searchInput.focus()}
-  if(e.key==='Escape'){modal.classList.add('hidden');viewModal.classList.add('hidden');toast.classList.add('hidden')}
+  if(e.key==='n'&&modal.classList.contains('hidden')&&viewModal.classList.contains('hidden')){
+    e.preventDefault();createBtn.click()
+  }
+  if(e.key==='/'&&document.activeElement!==searchInput){
+    e.preventDefault();searchInput.focus()
+  }
+  if(e.key==='Escape'){
+    modal.classList.add('hidden')
+    viewModal.classList.add('hidden')
+    toast.classList.add('hidden')
+  }
 })
+
 window.addEventListener('dragover',e=>e.preventDefault())
 window.addEventListener('drop',e=>{
   e.preventDefault()
   const f=e.dataTransfer.files?.[0]; if(!f)return
-  editIndex=null; modalTitle.textContent="Новая запись"; modal.classList.remove("hidden"); form.reset()
+  editIndex=null
+  modalTitle.textContent="Новая запись"
+  modal.classList.remove("hidden"); form.reset()
   const dt=new DataTransfer();dt.items.add(f);fileInput.files=dt.files
   titleInput.value ||= f.name
 })
 
+/* ======= старт ======= */
 renderNotes()
+
+   
