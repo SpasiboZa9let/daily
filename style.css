@@ -27,7 +27,6 @@ h1 { margin: 1rem 0; }
   color: var(--white);
 }
 
-/* ===== Карточки ===== */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -48,24 +47,7 @@ h1 { margin: 1rem 0; }
 }
 .card:hover { transform: translateY(-6px); box-shadow: 0 0 25px rgba(138,92,255,0.35); }
 
-/* акцент рамки */
-.card--accent::before{
-  content:"";
-  position:absolute; inset:-1px;
-  border-radius: inherit;
-  padding:1px;
-  background: linear-gradient(135deg, var(--accent), rgba(255,255,255,0.08));
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events:none;
-}
-.card--accent:hover { box-shadow: 0 0 22px var(--accent); }
-
-/* бейдж */
-.topic-badge{
+.topic-badge {
   display:inline-flex; align-items:center; gap:6px;
   padding: 4px 10px;
   border-radius: 999px;
@@ -75,7 +57,6 @@ h1 { margin: 1rem 0; }
   background: rgba(255,255,255,0.04);
 }
 
-/* actions */
 .card__actions {
   position: absolute; top: 8px; right: 8px;
   display: flex; gap: 6px;
@@ -88,7 +69,6 @@ h1 { margin: 1rem 0; }
 }
 .card__actions button:hover { background: var(--purple); }
 
-/* кнопки */
 button {
   background: var(--purple);
   border: none; color: white;
@@ -97,7 +77,6 @@ button {
 }
 button:hover { background:#6d3cff; }
 
-/* ===== Модалки ===== */
 .modal {
   position: fixed; inset:0;
   background: rgba(0,0,0,0.7);
@@ -111,12 +90,11 @@ button:hover { background:#6d3cff; }
   padding:20px; border-radius:12px;
   max-width:800px;
   width:90%;
-  max-height:90vh;       /* ограничение по экрану */
-  overflow-y:auto;       /* вертикальный скролл */
+  max-height:90vh;
+  overflow-y:auto;
   text-align:left;
 }
 
-/* ===== Тост ===== */
 #toast {
   position:fixed; bottom:20px; left:50%;
   transform:translateX(-50%);
@@ -127,75 +105,31 @@ button:hover { background:#6d3cff; }
 }
 #toast a { color: var(--purple); cursor: pointer; }
 
-/* ===== Просмотр файлов ===== */
-#viewFile div {
-  margin-top: 10px;
-  padding: 10px;
+/* ===== блок файлов ===== */
+#viewFiles {
+  margin-bottom: 15px;
+}
+#viewFiles div {
+  margin-top: 8px;
+  padding: 8px;
   border: 1px solid #34214a;
   border-radius: 8px;
   background: #120020;
 }
-#viewFile img, #viewFile embed, #viewFile pre {
-  margin-top:6px;
-  border-radius:6px;
-  max-width:100%;
-}
-#viewFile audio, #viewFile video {
-  margin-top: 8px;
-  max-width: 100%;
+#viewFiles img {
+  max-height: 160px;
   border-radius: 6px;
+  margin-right: 8px;
 }
-#viewFile table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin-top: 8px;
-}
-#viewFile th, #viewFile td {
-  border: 1px solid #34214a;
-  padding: 4px 6px;
-}
-#viewText, #viewFile {
-  margin-top: 10px;
-  overflow-x: auto; /* горизонтальный скролл для таблиц */
-}
-
-/* ===== Карусель для изображений ===== */
-#viewFile.carousel {
+#viewFiles .carousel {
   display: flex;
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 8px;
 }
-#viewFile.carousel img {
-  max-height: 180px;
-  flex-shrink: 0;
-  border-radius: 6px;
-  object-fit: cover;
-}
 
-/* ===== Мини-превью файлов в карточке ===== */
-.card__files {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-.card__files img {
-  width: 40px; height: 40px;
-  object-fit: cover;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.card__files .file-icon {
-  display: flex; align-items: center;
-  font-size: 12px;
-  background: rgba(255,255,255,0.05);
-  padding: 2px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.card__files .more {
-  font-size: 12px;
-  opacity: 0.7;
+/* текст */
+#viewText {
+  margin-top: 12px;
+  line-height: 1.5;
 }
