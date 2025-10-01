@@ -5,15 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
   <title>Daily — Ежедневник</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Библиотеки -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js" defer></script>
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
   <h1>Daily</h1>
 
-  <!-- Верхняя панель -->
   <div id="menu">
     <button id="createNoteBtn">Создать запись</button>
     <button id="exportBtn">Экспорт</button>
@@ -21,19 +17,16 @@
     <button id="densityBtn">Компактно</button>
   </div>
 
-  <!-- Поиск -->
   <div id="toolbar">
     <input id="searchInput" placeholder="Поиск... (нажми /)" />
     <input id="importInput" type="file" accept="application/json" style="display:none;" />
   </div>
 
-  <!-- Сетка карточек -->
   <div id="app"></div>
 
-  <!-- Тост -->
   <div id="toast" class="hidden">Удалено. <a id="undoLink">Отменить</a></div>
 
-  <!-- Модалка: форма -->
+  <!-- Форма -->
   <div id="modal" class="modal hidden">
     <div class="modal-content">
       <h2 id="modalTitle">Новая запись</h2>
@@ -58,13 +51,13 @@
     </div>
   </div>
 
-  <!-- Модалка: просмотр -->
+  <!-- Просмотр -->
   <div id="viewModal" class="modal hidden">
     <div class="modal-content">
       <h2 id="viewTitle"></h2>
       <p id="viewTopic"></p>
+      <div id="viewFiles"></div>
       <div id="viewText"></div>
-      <div id="viewFile"></div>
       <div class="modal-actions">
         <button type="button" id="closeViewBtn">Закрыть</button>
       </div>
