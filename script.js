@@ -1,7 +1,14 @@
-let notes = JSON.parse(localStorage.getItem("dailyNotes")) || [];
+/* ===== ИНИЦИАЛИЗАЦИЯ ===== */
+let notes = [];
+try {
+  notes = JSON.parse(localStorage.getItem("dailyNotes")) || [];
+} catch {
+  notes = [];
+}
+
 let editIndex = null, query = '', lastDeleted = null, undoTimer = null;
 
-// DOM
+// DOM элементы
 const app = document.getElementById('app');
 const createBtn = document.getElementById('createNoteBtn');
 const modal = document.getElementById('modal');
@@ -30,7 +37,7 @@ const densityBtn = document.getElementById('densityBtn');
 
 /* ===== тема → иконка/цвет ===== */
 function getTopicMeta(topic = "") {
-  const t = (topic || "").toLowerCase();
+  const t = topic.toLowerCase();
   const table = [
     { keys: ['работ','work'], emoji: '🛠', hue: 265 },
     { keys: ['лич','personal'], emoji: '🏷️', hue: 200 },
@@ -49,14 +56,6 @@ function getTopicMeta(topic = "") {
   return { emoji: '🗒️', color: `hsl(${hue},70%,55%)` };
 }
 
-function base64ToArrayBuffer(b64){
-  const bin = atob(b64.split(',')[1]);
-  const len = bin.length;
-  const bytes = new Uint8Array(len);
-  for(let i=0;i<len;i++) bytes[i] = bin.charCodeAt(i);
-  return bytes.buffer;
-}
-
 /* ===== РЕНДЕР КАРТОЧЕК ===== */
 function renderNotes() {
   const filtered = notes
@@ -72,14 +71,10 @@ function renderNotes() {
       ${filtered.map(({n, idx}) => {
         const meta = getTopicMeta(n.topic);
 
-        // превью файлов (до 3 шт.)
         let filePreview = "";
         if (n.files && n.files.length > 0) {
           const previews = n.files.slice(0,3).map((f,j)=>{
-            if(f.data.startsWith('data:image')){
-              return `<img src="${f.data}" alt="${f.name}" data-idx="${idx}" data-f="${j}" />`;
-            }
-            return `<div class="file-icon" data-idx="${idx}" data-f="${j}">📎 ${f.name.split('.').pop()}</div>`;
+            return `<div class="file-icon" data-idx="${idx}" data-f="${j}">📎 ${f.name}</div>`;
           }).join("");
           const more = n.files.length>3 ? `<span class="more">+${n.files.length-3}</span>` : "";
           filePreview = `<div class="card__files">${previews}${more}</div>`;
@@ -104,18 +99,20 @@ function renderNotes() {
       }).join('')}
     </div>`;
 
-  // клик по карточке (не по файлам/кнопкам)
+  // Клик по карточке
   document.querySelectorAll(".card").forEach(card=>{
     card.addEventListener("click", e=>{
-      if (e.target.tagName==="BUTTON" || e.target.closest(".card__files")) return;
+      if (e.target.closest(".card__files")) return;
       openView(card.dataset.index);
     });
   });
-  // клик по мини-превью файла
-  document.querySelectorAll(".card__files img, .card__files .file-icon").forEach(el=>{
+
+  // Клик по файлу
+  document.querySelectorAll(".file-icon").forEach(el=>{
     el.addEventListener("click", e=>{
       e.stopPropagation();
-      openView(el.dataset.idx);
+      const file = notes[el.dataset.idx].files[el.dataset.f];
+      openFileInNewTab(file);
     });
   });
 }
@@ -136,7 +133,6 @@ form.addEventListener("submit", e=>{
   const text  = textInput.value.trim();
   const files = fileInput.files;
 
-  // читаем выбранные файлы, иначе берём прежние при редактировании
   if (files.length > 0) {
     const promises = [...files].map(f => new Promise(res=>{
       const r = new FileReader();
@@ -157,7 +153,9 @@ function saveNote(title, topic, text, files){
   if (editIndex !== null) { notes[editIndex] = newNote; editIndex = null; }
   else { notes.push(newNote); }
   localStorage.setItem("dailyNotes", JSON.stringify(notes));
+  form.reset();
   modal.classList.add("hidden");
+  showToast("Заметка сохранена");
   renderNotes();
 }
 
@@ -168,7 +166,7 @@ window.editNote = i => {
   titleInput.value = n.title || "";
   topicInput.value = n.topic || "";
   textInput.value  = n.text  || "";
-  fileInput.value = ""; // сбрасываем выбор
+  fileInput.value = "";
   modal.classList.remove("hidden");
 };
 
@@ -178,12 +176,13 @@ window.deleteNote = i => {
   lastDeleted = { removed, index: i };
   localStorage.setItem("dailyNotes", JSON.stringify(notes));
   renderNotes();
-  showToast();
+  showToast("Удалено. Отменить?");
 };
-function showToast(){
+function showToast(message="") {
+  toast.textContent = message;
   toast.classList.remove('hidden');
   clearTimeout(undoTimer);
-  undoTimer = setTimeout(()=> toast.classList.add('hidden'), 5000);
+  undoTimer = setTimeout(()=> toast.classList.add('hidden'), 3000);
 }
 undoLink.onclick = () => {
   if(!lastDeleted) return;
@@ -194,92 +193,42 @@ undoLink.onclick = () => {
   renderNotes();
 };
 
-/* ===== ПРОСМОТР: сначала файлы, потом текст ===== */
-function renderFilePreview(f){
-  const { name, data } = f;
+/* ===== ПРОСМОТР (без автопоказа файлов) ===== */
+function openFileInNewTab(file) {
+  if (file && file.data) {
+    const blob = dataURLtoBlob(file.data);
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } else alert("Файл недоступен.");
+}
 
-  // изображения
-  if (data.startsWith('data:image')) {
-    return `<div><p>📷 ${name}</p><img src="${data}" alt="${name}"></div>`;
-  }
-
-  // PDF
-  if (data.startsWith('data:application/pdf')) {
-    return `<div><p>📄 ${name}</p><embed src="${data}" type="application/pdf" width="100%" height="300"></div>`;
-  }
-
-  // текстовые (txt, csv и т.п.)
-  if (data.startsWith('data:text')) {
-    const text = atob(data.split(',')[1]).slice(0, 1000);
-    return `<div><p>📄 ${name}</p><pre>${text}</pre></div>`;
-  }
-
-  // Word (docx) — извлекаем текст
-  if (data.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
-    mammoth.extractRawText({ arrayBuffer: base64ToArrayBuffer(data) })
-      .then(result => {
-        const el = document.querySelector(`#viewFiles pre.loading[data-file="${CSS.escape(name)}"]`);
-        if (el) el.outerHTML = `<pre>${result.value}</pre>`;
-      })
-      .catch(()=>{});
-    return `<div><p>📄 ${name}</p><pre class="loading" data-file="${name}">Загружаю Word...</pre>
-            <a href="${data}" download="${name}">⬇ Скачать DOCX</a></div>`;
-  }
-
-  // Excel (xlsx) — первые строки первой вкладки
-  if (data.startsWith('data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
-    try {
-      const wb = XLSX.read(base64ToArrayBuffer(data), { type: "array" });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const json  = XLSX.utils.sheet_to_json(sheet, { header:1, raw:false });
-      const preview = json.slice(0,8)
-        .map(row => "<tr>" + row.map(c => `<td>${c ?? ""}</td>`).join("") + "</tr>")
-        .join("");
-      return `<div><p>📊 ${name}</p><table><tbody>${preview}</tbody></table>
-              <a href="${data}" download="${name}">⬇ Скачать XLSX</a></div>`;
-    } catch(e) {
-      return `<div><p>📊 ${name}</p><a href="${data}" download="${name}">⬇ Скачать XLSX</a></div>`;
-    }
-  }
-
-  // PowerPoint — пока только скачивание
-  if (data.startsWith('data:application/vnd.openxmlformats-officedocument.presentationml.presentation')) {
-    return `<div><p>📽 ${name}</p><a href="${data}" download="${name}">⬇ Скачать PPTX</a></div>`;
-  }
-
-  // Аудио
-  if (name.match(/\.(mp3|wav|ogg)$/i)) {
-    return `<div><p>🎵 ${name}</p><audio controls src="${data}"></audio></div>`;
-  }
-
-  // Видео
-  if (name.match(/\.(mp4|webm|ogg)$/i)) {
-    return `<div><p>🎥 ${name}</p><video controls src="${data}"></video></div>`;
-  }
-
-  // fallback
-  return `<div><p>📎 ${name}</p><a href="${data}" download="${name}">⬇ Скачать</a></div>`;
+function dataURLtoBlob(dataURL) {
+  const [meta, data] = dataURL.split(',');
+  const mime = meta.match(/:(.*?);/)[1];
+  const binary = atob(data);
+  const array = [];
+  for (let i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
+  return new Blob([new Uint8Array(array)], { type: mime });
 }
 
 function openView(i){
   const n = notes[i];
   const meta = getTopicMeta(n.topic);
-
   viewTitle.textContent = n.title;
   viewTopic.textContent = n.topic ? `${meta.emoji} Тема: ${n.topic}` : "";
 
-  // файлы — первыми
+  // просто список файлов
   if (n.files && n.files.length) {
-    const hasImg = n.files.some(f => f.data.startsWith('data:image'));
-    const list = n.files.map(renderFilePreview).join("");
-    viewFiles.innerHTML = hasImg ? `<div class="carousel">${list}</div>` : list;
+    const list = n.files.map(f => `<div class="file-link">📎 ${f.name}</div>`).join("");
+    viewFiles.innerHTML = list;
+    viewFiles.querySelectorAll('.file-link').forEach((el, j)=>{
+      el.addEventListener('click', ()=> openFileInNewTab(n.files[j]));
+    });
   } else {
     viewFiles.innerHTML = `<div>Нет вложений</div>`;
   }
 
-  // затем текст
-  viewText.innerHTML = window.marked ? marked.parse(n.text || '') : (n.text || '');
-
+  viewText.innerHTML = (n.text || '').replace(/\n/g, '<br>');
   viewModal.classList.remove("hidden");
 }
 closeViewBtn.onclick = () => viewModal.classList.add("hidden");
@@ -343,5 +292,5 @@ window.addEventListener('drop', e=>{
   titleInput.value ||= f.name;
 });
 
-/* старт */
+/* ===== СТАРТ ===== */
 renderNotes();
