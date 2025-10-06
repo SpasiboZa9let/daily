@@ -55,7 +55,7 @@ button:active {
   box-shadow: 0 0 8px rgba(138,76,255,0.4);
 }
 
-/* ===== КАРТОЧКИ ===== */
+/* ===== КАРТОЧКИ: единый размер + усечение текста ===== */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -71,28 +71,45 @@ button:active {
   position: relative;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.3s;
+  height: 240px; /* фиксированная высота */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
+
 .card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow);
 }
+
 .card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .card__title {
-  font-size: 1.2rem;
-  margin: 0.4rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.4rem 0 0.3rem;
   color: #fff;
-  word-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .card__description {
   font-size: 0.9rem;
-  opacity: 0.8;
-  line-height: 1.4;
-  word-wrap: break-word;
+  line-height: 1.3;
+  opacity: 0.85;
+  color: #ddd;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;  /* максимум 2 строки */
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
 }
+
 .topic-badge {
   font-size: 0.9rem;
   padding: 0.2rem 0.5rem;
@@ -100,6 +117,8 @@ button:active {
   background: rgba(255,255,255,0.1);
   border-left: 4px solid var(--accent);
 }
+
+/* ===== КНОПКИ В КАРТОЧКЕ ===== */
 .card__actions {
   position: absolute;
   top: 8px;
@@ -116,30 +135,48 @@ button:active {
   color: #fff;
 }
 
-/* ===== ВЛОЖЕНИЯ (ФАЙЛЫ) ===== */
+/* ===== ВЛОЖЕНИЯ ===== */
 .card__files {
-  margin-top: 0.6rem;
+  margin-top: 0.5rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
+  overflow: hidden;
 }
+
+.card__files img {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: 0.2s;
+}
+.card__files img:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(138,76,255,0.4);
+}
+
 .file-icon {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.85rem;
-  background: rgba(255,255,255,0.08);
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid transparent;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  background: rgba(255,255,255,0.07);
+  padding: 0.2rem 0.4rem;
+  border-radius: 5px;
   cursor: pointer;
   transition: 0.2s;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .file-icon:hover {
-  border-color: var(--accent);
   background: rgba(138,76,255,0.15);
   color: #fff;
-  box-shadow: 0 0 10px rgba(138,76,255,0.4);
+  box-shadow: 0 0 8px rgba(138,76,255,0.3);
 }
 
 /* ===== МОДАЛКИ ===== */
